@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header">
+    <h4><i class="bi bi-building me-2 text-primary"></i>Vendor — RFQ & Award Management</h4>
+    <p>Manage vendors, request for quotations and award contracts. Port 8082</p>
+</div>
+
+<div class="row g-4">
+    <!-- RFQs table -->
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-earmark-ruled"></i>RFQs</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadRfqs()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive"><div id="rfqTable"></div></div>
+            </div>
+        </div>
+
+        <!-- Vendor quotes -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-chat-quote"></i>Vendor Quotes (load by RFQ externalId)</div>
+            <div class="card-body pb-2">
+                <div class="input-group mb-3" style="max-width:450px">
+                    <input class="form-control" id="quotesRfqId" placeholder="RFQ externalId"/>
+                    <button class="btn btn-outline-secondary" onclick="loadQuotes()">Load Quotes</button>
+                </div>
+                <div class="table-responsive"><div id="quotesTable"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-12 col-xl-4">
+        <!-- Vendors list -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people"></i>Vendors</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadVendors()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <div id="vendorTable"></div>
+            </div>
+        </div>
+
+        <!-- Create RFQ -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-plus-circle"></i>Create RFQ</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">RFQ Number *</label>
+                    <input class="form-control" id="rfq_num" placeholder="RFQ-2025-003" required/></div>
+                <div class="mb-2"><label class="form-label">Campaign Code *</label>
+                    <input class="form-control" id="rfq_camp" placeholder="SUMMER25-TOY"/></div>
+                <div class="mb-2"><label class="form-label">SKU *</label>
+                    <input class="form-control" id="rfq_sku" placeholder="TOY-DINO-MIX-001"/></div>
+                <div class="mb-2"><label class="form-label">Qty Required *</label>
+                    <input type="number" class="form-control" id="rfq_qty" placeholder="500000"/></div>
+                <div class="mb-3"><label class="form-label">Deadline</label>
+                    <input type="date" class="form-control" id="rfq_deadline"/></div>
+                <button class="btn btn-primary w-100" onclick="createRfq()">
+                    <i class="bi bi-plus-circle me-1"></i>Create RFQ
+                </button>
+            </div>
+        </div>
+
+        <!-- Award RFQ -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-trophy"></i>Award RFQ → erp.vendor.rfq.awarded</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">RFQ External ID</label>
+                    <input class="form-control" id="award_rfq_id" placeholder="rfq-001-uuid"/></div>
+                <div class="mb-3"><label class="form-label">Winning Quote External ID</label>
+                    <input class="form-control" id="award_quote_id" placeholder="quote-001-uuid"/></div>
+                <button class="btn btn-primary w-100" onclick="awardRfq()">
+                    <i class="bi bi-trophy me-1"></i>Award Contract
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', () => { loadRfqs(); loadVendors(); });
+
+function renderRfqs(data) {
+    if (!data.length) return emptyState('file-earmark-ruled', 'No RFQs found');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>RFQ #</th><th>Campaign</th><th>SKU</th><th>Qty</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(r=>`<tr>
+        <td>${mono(r.rfqNumber)}</td>
+        <td>${r.campaignCode||'—'}</td>
+        <td>${mono(r.sku||'—')}</td>
+        <td>${fmtNum(r.quantityRequired)}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>
+            <button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('quotesRfqId').value='${r.externalId}';loadQuotes()">
+                <i class="bi bi-chat-quote"></i> Quotes
+            </button>
+            <button class="btn btn-action btn-outline-secondary ms-1" onclick="document.getElementById('award_rfq_id').value='${r.externalId}'">
+                <i class="bi bi-trophy"></i> Award
+            </button>
+        </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadRfqs() {
+    await loadTable('vendor', '/api/v1/rfqs', 'rfqTable', renderRfqs);
+}
+
+async function loadVendors() {
+    const res = await apiGet('vendor', '/api/v1/vendors');
+    const data = res?.data ?? [];
+    if (!data.length) { document.getElementById('vendorTable').innerHTML = emptyState('people','No vendors'); return; }
+    document.getElementById('vendorTable').innerHTML = `<table class="table mb-0" style="font-size:.78rem"><thead><tr>
+        <th>Code</th><th>Name</th><th>Country</th><th>Status</th>
+    </tr></thead><tbody>${data.map(v=>`<tr>
+        <td>${mono(v.vendorCode)}</td><td>${v.vendorName||'—'}</td>
+        <td>${v.country||'—'}</td><td>${statusBadge(v.status)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadQuotes() {
+    const id = document.getElementById('quotesRfqId').value.trim();
+    if (!id) return;
+    const res = await apiGet('vendor', `/api/v1/rfqs/${id}/quotes`);
+    const data = res?.data ?? [];
+    if (!data.length) { document.getElementById('quotesTable').innerHTML = emptyState('chat-quote','No quotes'); return; }
+    document.getElementById('quotesTable').innerHTML = `<table class="table mb-0"><thead><tr>
+        <th>Vendor</th><th>Unit Price</th><th>Qty</th><th>Lead Days</th><th>Status</th><th>Action</th>
+    </tr></thead><tbody>${data.map(q=>`<tr>
+        <td>${q.vendorCode||'—'}</td>
+        <td>$${q.unitPrice||'—'}</td>
+        <td>${fmtNum(q.quotedQuantity)}</td>
+        <td>${q.leadTimeDays||'—'}</td>
+        <td>${statusBadge(q.status)}</td>
+        <td><button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('award_quote_id').value='${q.externalId}'">
+            <i class="bi bi-trophy"></i> Select
+        </button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function createRfq() {
+    const body = {
+        rfqNumber: document.getElementById('rfq_num').value,
+        campaignCode: document.getElementById('rfq_camp').value,
+        sku: document.getElementById('rfq_sku').value,
+        quantityRequired: parseInt(document.getElementById('rfq_qty').value)||0,
+        submissionDeadline: document.getElementById('rfq_deadline').value || '2025-04-01',
+        createdBy: 'procurement.manager'
+    };
+    const res = await apiPost('vendor', '/api/v1/rfqs', body);
+    showResponse('Create RFQ', res);
+    if (res?.success) { showToast('RFQ created!'); loadRfqs(); }
+    else showToast(res?.message||'Error', true);
+}
+
+async function awardRfq() {
+    const rfqId   = document.getElementById('award_rfq_id').value.trim();
+    const quoteId = document.getElementById('award_quote_id').value.trim();
+    if (!rfqId || !quoteId) { showToast('Enter both RFQ and Quote IDs', true); return; }
+    const res = await apiPost('vendor', `/api/v1/rfqs/${rfqId}/award`, {
+        winningQuoteExternalId: quoteId, awardedBy:'procurement.manager',
+        notes:'Contract awarded via dashboard'
+    });
+    showResponse('Award RFQ → erp.vendor.rfq.awarded', res);
+    if (res?.success) { showToast('RFQ awarded! Event published.'); loadRfqs(); }
+    else showToast(res?.message||'Error', true);
+}
+</script>
+</body>
+</html>

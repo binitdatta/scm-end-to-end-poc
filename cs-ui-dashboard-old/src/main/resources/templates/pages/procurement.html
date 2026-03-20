@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header">
+    <h4><i class="bi bi-file-earmark-text me-2 text-primary"></i>Procurement — Purchase Orders</h4>
+    <p>Manage purchase orders from DRAFT through COMPLETED. Port 8083</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-earmark-text"></i>Purchase Orders</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadPOs()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive"><div id="poTable"></div></div>
+            </div>
+        </div>
+
+        <!-- PO Line Items -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-list-ul"></i>PO Line Items</div>
+            <div class="card-body pb-2">
+                <div class="input-group mb-3" style="max-width:430px">
+                    <input class="form-control" id="poLinesId" placeholder="PO externalId"/>
+                    <button class="btn btn-outline-secondary" onclick="loadPOLines()">Load Lines</button>
+                </div>
+                <div id="poLinesTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <!-- Create PO -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-plus-circle"></i>Create Purchase Order</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">PO Number *</label>
+                    <input class="form-control" id="po_num" placeholder="PO-2025-003"/></div>
+                <div class="mb-2"><label class="form-label">Vendor External ID *</label>
+                    <input class="form-control" id="po_vendor" placeholder="vnd-002-uuid"/></div>
+                <div class="mb-2"><label class="form-label">Campaign Code</label>
+                    <input class="form-control" id="po_camp" placeholder="SUMMER25-TOY"/></div>
+                <div class="mb-2"><label class="form-label">SKU</label>
+                    <input class="form-control" id="po_sku" placeholder="TOY-DINO-MIX-001"/></div>
+                <div class="mb-2"><label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" id="po_qty" placeholder="500000"/></div>
+                <div class="mb-3"><label class="form-label">Expected Delivery</label>
+                    <input type="date" class="form-control" id="po_delivery"/></div>
+                <button class="btn btn-primary w-100" onclick="createPO()">
+                    <i class="bi bi-plus-circle me-1"></i>Create PO
+                </button>
+            </div>
+        </div>
+
+        <!-- PO Lifecycle Actions -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-play-circle"></i>PO Lifecycle Actions</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">PO External ID</label>
+                    <input class="form-control" id="po_action_id" placeholder="po-001-uuid"/>
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary" onclick="poAction('approve')">
+                        <i class="bi bi-check-circle me-1"></i>Approve PO
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="poAction('send-to-vendor')">
+                        <i class="bi bi-send me-1"></i>Send to Vendor
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="poAction('acknowledge')">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>Vendor Acknowledge
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="poAction('in-production')">
+                        <i class="bi bi-gear me-1"></i>In Production
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="poAction('ready-to-ship')">
+                        <i class="bi bi-box-seam me-1"></i>Ready to Ship → WMS event
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="poAction('complete')">
+                        <i class="bi bi-check2-all me-1"></i>Complete PO
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', loadPOs);
+
+function renderPOs(data) {
+    if (!data.length) return emptyState('file-earmark-text','No purchase orders');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>PO #</th><th>Vendor</th><th>Campaign</th><th>SKU</th><th>Qty</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(p=>`<tr>
+        <td>${mono(p.poNumber)}</td>
+        <td class="text-muted-sm">${p.vendorCode||'—'}</td>
+        <td class="text-muted-sm">${p.campaignCode||'—'}</td>
+        <td>${mono(p.sku||'—')}</td>
+        <td>${fmtNum(p.totalQuantity||p.quantity)}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td>
+            <button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('po_action_id').value='${p.externalId}'">
+                <i class="bi bi-arrow-right-circle"></i>
+            </button>
+            <button class="btn btn-action btn-outline-secondary ms-1" onclick="document.getElementById('poLinesId').value='${p.externalId}';loadPOLines()">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadPOs() { await loadTable('procurement','/api/v1/purchase-orders','poTable',renderPOs); }
+
+async function loadPOLines() {
+    const id = document.getElementById('poLinesId').value.trim(); if (!id) return;
+    const res = await apiGet('procurement',`/api/v1/purchase-orders/${id}/line-items`);
+    const data = res?.data ?? [];
+    document.getElementById('poLinesTable').innerHTML = !data.length ? emptyState('list-ul','No line items') :
+        `<table class="table mb-0"><thead><tr><th>SKU</th><th>Description</th><th>Qty Ordered</th><th>Unit Price</th></tr></thead>
+        <tbody>${data.map(l=>`<tr><td>${mono(l.sku)}</td><td>${l.description||'—'}</td><td>${fmtNum(l.quantityOrdered)}</td><td>$${l.unitPrice||'—'}</td></tr>`).join('')}</tbody></table>`;
+}
+
+async function createPO() {
+    const body = {
+        poNumber: document.getElementById('po_num').value,
+        vendorExternalId: document.getElementById('po_vendor').value,
+        campaignCode: document.getElementById('po_camp').value,
+        expectedDeliveryDate: document.getElementById('po_delivery').value || '2025-05-01',
+        createdBy:'procurement.manager',
+        lineItems:[{
+            sku: document.getElementById('po_sku').value || 'TOY-DINO-MIX-001',
+            description:'Toy Item', quantityOrdered: parseInt(document.getElementById('po_qty').value)||1,
+            unitPrice:2.50
+        }]
+    };
+    const res = await apiPost('procurement','/api/v1/purchase-orders',body);
+    showResponse('Create PO',res);
+    if(res?.success){showToast('PO created!');loadPOs();}else showToast(res?.message||'Error',true);
+}
+
+async function poAction(action) {
+    const id = document.getElementById('po_action_id').value.trim();
+    if(!id){showToast('Enter PO externalId',true);return;}
+    const res = await apiPost('procurement',`/api/v1/purchase-orders/${id}/${action}`,{triggeredBy:'procurement.manager'});
+    showResponse(`PO Action: ${action}`,res);
+    if(res?.success){showToast(`PO ${action} complete!`);loadPOs();}else showToast(res?.message||'Error',true);
+}
+</script>
+</body>
+</html>

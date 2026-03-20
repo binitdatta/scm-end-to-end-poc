@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header">
+    <h4><i class="bi bi-truck me-2 text-primary"></i>TMS — Delivery Tracking & Proof of Delivery</h4>
+    <p>Track carrier loads from dispatch through store-level POD confirmation. The final supply chain step. Port 8087</p>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-label">Total Loads</div>
+            <div class="stat-value" id="statTotal">—</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-label">In Transit</div>
+            <div class="stat-value text-info" id="statInTransit">—</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-label">Completed</div>
+            <div class="stat-value text-success" id="statCompleted">—</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-label">Units Delivered</div>
+            <div class="stat-value text-warning" id="statUnits">—</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Loads table -->
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-truck"></i>Delivery Loads</span>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width:140px" id="loadFilter" onchange="loadLoads()">
+                        <option value="">All Statuses</option>
+                        <option value="/status/CREATED">CREATED</option>
+                        <option value="/status/ASSIGNED">ASSIGNED</option>
+                        <option value="/status/IN_TRANSIT">IN_TRANSIT</option>
+                        <option value="/status/COMPLETED">COMPLETED</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadLoads()"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive"><div id="loadsTable"></div></div>
+            </div>
+        </div>
+
+        <!-- Store deliveries for selected load -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-shop"></i>Store Deliveries (load externalId below)</div>
+            <div class="card-body pb-2">
+                <div class="input-group mb-3" style="max-width:460px">
+                    <input class="form-control" id="deliveriesLoadId" placeholder="Load externalId"/>
+                    <button class="btn btn-outline-secondary" onclick="loadStoreDeliveries()">Load Deliveries</button>
+                </div>
+                <div id="deliveriesTable"></div>
+            </div>
+        </div>
+
+        <!-- Transit events -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-geo-alt"></i>Carrier Transit Events</div>
+            <div class="card-body pb-2">
+                <div class="input-group mb-3" style="max-width:460px">
+                    <input class="form-control" id="transitLoadId" placeholder="Load externalId"/>
+                    <button class="btn btn-outline-secondary" onclick="loadTransitEvents()">Load Events</button>
+                </div>
+                <div id="transitTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-12 col-xl-4">
+        <!-- Create delivery load -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-plus-circle"></i>Create Delivery Load</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">Load Number *</label>
+                    <input class="form-control" id="ld_num" placeholder="LOAD-2025-003"/></div>
+                <div class="mb-2"><label class="form-label">Shipment External ID *</label>
+                    <input class="form-control" id="ld_shp" placeholder="shp-001-uuid"/></div>
+                <div class="mb-2"><label class="form-label">Shipment Number</label>
+                    <input class="form-control" id="ld_shp_num" placeholder="SHP-2025-001"/></div>
+                <div class="mb-2"><label class="form-label">Store Order Ext ID</label>
+                    <input class="form-control" id="ld_ord" placeholder="ord-001-uuid"/></div>
+                <div class="mb-2"><label class="form-label">Store Order Number</label>
+                    <input class="form-control" id="ld_ord_num" placeholder="ORD-2025-001"/></div>
+                <div class="mb-2"><label class="form-label">Region Code</label>
+                    <input class="form-control" id="ld_region" placeholder="US-MIDWEST"/></div>
+                <div class="mb-2"><label class="form-label">Carrier *</label>
+                    <input class="form-control" id="ld_carrier" placeholder="XPO Logistics"/></div>
+                <div class="mb-2"><label class="form-label">PRO Number *</label>
+                    <input class="form-control" id="ld_pro" placeholder="XPO-2025-MW-0441"/></div>
+                <div class="mb-2"><label class="form-label">Total Cartons</label>
+                    <input type="number" class="form-control" id="ld_cartons" placeholder="4"/></div>
+                <div class="mb-3"><label class="form-label">Total Units</label>
+                    <input type="number" class="form-control" id="ld_units" placeholder="128000"/></div>
+                <button class="btn btn-primary w-100" onclick="createLoad()">
+                    <i class="bi bi-plus-circle me-1"></i>Create Load
+                </button>
+            </div>
+        </div>
+
+        <!-- Load lifecycle -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-play-circle"></i>Load Lifecycle</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">Load External ID</label>
+                    <input class="form-control" id="ld_action_id" placeholder="Load externalId"/></div>
+                <div class="mb-2"><label class="form-label">Driver Name (for assign)</label>
+                    <input class="form-control" id="ld_driver" placeholder="Mike Johnson"/></div>
+                <div class="mb-3"><label class="form-label">Truck Number (for assign)</label>
+                    <input class="form-control" id="ld_truck" placeholder="XPO-TRUCK-5521"/></div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="assignDriver()">
+                        <i class="bi bi-person-check me-1"></i>Assign Driver
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="loadAction('in-transit')">
+                        <i class="bi bi-truck me-1"></i>Mark In Transit → stores OUT_FOR_DELIVERY
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="recordTransit()">
+                        <i class="bi bi-pin-map me-1"></i>Record Transit Milestone
+                    </button>
+                </div>
+                <hr class="section-divider"/>
+                <div class="mb-2"><label class="form-label">Transit Event Code</label>
+                    <input class="form-control" id="te_code" placeholder="IN_TRANSIT"/></div>
+                <div class="mb-2"><label class="form-label">Location</label>
+                    <input class="form-control" id="te_loc" placeholder="Chicago, IL"/></div>
+                <div class="mb-2"><label class="form-label">Description</label>
+                    <input class="form-control" id="te_desc" placeholder="En route to stores"/></div>
+            </div>
+        </div>
+
+        <!-- POD Confirmation -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-check2-circle"></i>Confirm Store POD</div>
+            <div class="card-body">
+                <p class="text-muted-sm mb-3">When all stores confirm POD, the load auto-completes and publishes
+                    <span class="mono">erp.tms.delivery.pod-confirmed</span> — the FINAL supply chain event.</p>
+                <div class="mb-2"><label class="form-label">Load External ID</label>
+                    <input class="form-control" id="pod_load_id" placeholder="Load externalId"/></div>
+                <div class="mb-2"><label class="form-label">Store Delivery External ID</label>
+                    <input class="form-control" id="pod_sd_id" placeholder="Store delivery externalId"/></div>
+                <div class="mb-2"><label class="form-label">Delivered Qty</label>
+                    <input type="number" class="form-control" id="pod_qty" placeholder="32000"/></div>
+                <div class="mb-2"><label class="form-label">POD Signatory *</label>
+                    <input class="form-control" id="pod_sig" placeholder="Store Manager Name"/></div>
+                <div class="mb-3"><label class="form-label">Notes</label>
+                    <input class="form-control" id="pod_notes" placeholder="All units received in good condition"/></div>
+                <button class="btn btn-primary w-100" onclick="confirmPod()">
+                    <i class="bi bi-check2-circle me-1"></i>Confirm POD → FINAL CHAIN EVENT
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', () => { loadLoads(); loadTmsStats(); });
+
+async function loadTmsStats() {
+    const [all, transit, completed] = await Promise.allSettled([
+        apiGet('tms','/api/v1/delivery-loads'),
+        apiGet('tms','/api/v1/delivery-loads/status/IN_TRANSIT'),
+        apiGet('tms','/api/v1/delivery-loads/status/COMPLETED')
+    ]);
+    const d = all?.value?.data;
+    document.getElementById('statTotal').textContent = Array.isArray(d) ? d.length : '—';
+    document.getElementById('statInTransit').textContent = Array.isArray(transit?.value?.data) ? transit.value.data.length : '—';
+    const comp = completed?.value?.data;
+    document.getElementById('statCompleted').textContent = Array.isArray(comp) ? comp.length : '—';
+    if (Array.isArray(comp)) {
+        const units = comp.reduce((s,l) => s + (l.totalUnits||0), 0);
+        document.getElementById('statUnits').textContent = units.toLocaleString();
+    }
+}
+
+function renderLoads(data) {
+    if (!data.length) return emptyState('truck','No delivery loads');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>Load #</th><th>Shipment #</th><th>Region</th><th>Carrier</th><th>PRO</th><th>Cartons</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(l=>`<tr>
+        <td>${mono(l.loadNumber)}</td>
+        <td class="text-muted-sm">${l.shipmentNumber||'—'}</td>
+        <td class="text-muted-sm">${l.regionCode||'—'}</td>
+        <td class="text-muted-sm">${l.carrierName||'—'}</td>
+        <td>${mono(l.proNumber||'—')}</td>
+        <td>${fmtNum(l.totalCartons)}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>
+            <button class="btn btn-action btn-outline-secondary" title="Select for actions"
+                onclick="selectLoad('${l.externalId}')">
+                <i class="bi bi-arrow-right-circle"></i>
+            </button>
+            <button class="btn btn-action btn-outline-secondary ms-1" title="View deliveries"
+                onclick="document.getElementById('deliveriesLoadId').value='${l.externalId}';loadStoreDeliveries()">
+                <i class="bi bi-shop"></i>
+            </button>
+        </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function selectLoad(id) {
+    document.getElementById('ld_action_id').value = id;
+    document.getElementById('deliveriesLoadId').value = id;
+    document.getElementById('transitLoadId').value = id;
+    document.getElementById('pod_load_id').value = id;
+    loadStoreDeliveries();
+    loadTransitEvents();
+}
+
+async function loadLoads() {
+    const filter = document.getElementById('loadFilter').value;
+    await loadTable('tms','/api/v1/delivery-loads'+filter,'loadsTable',renderLoads);
+}
+
+async function loadStoreDeliveries() {
+    const id = document.getElementById('deliveriesLoadId').value.trim(); if (!id) return;
+    const res = await apiGet('tms',`/api/v1/delivery-loads/${id}`);
+    const data = res?.data?.storeDeliveries ?? [];
+    if (!data.length) { document.getElementById('deliveriesTable').innerHTML = emptyState('shop','No store deliveries'); return; }
+    document.getElementById('deliveriesTable').innerHTML =
+        `<table class="table mb-0"><thead><tr>
+            <th>Store #</th><th>Store Name</th><th>City</th><th>SKU</th><th>Qty</th><th>Delivered</th><th>Signatory</th><th>Status</th><th>POD</th>
+        </tr></thead><tbody>${data.map(sd=>`<tr>
+            <td>${mono(sd.storeNumber)}</td>
+            <td class="text-muted-sm">${sd.storeName||'—'}</td>
+            <td class="text-muted-sm">${sd.city||'—'}, ${sd.stateCode||''}</td>
+            <td>${mono(sd.sku||'—')}</td>
+            <td>${fmtNum(sd.quantity)}</td>
+            <td>${fmtNum(sd.deliveredQuantity)}</td>
+            <td class="text-muted-sm">${sd.podSignatory||'—'}</td>
+            <td>${statusBadge(sd.status)}</td>
+            <td>
+                ${sd.status!=='POD_CONFIRMED' ? `<button class="btn btn-action btn-outline-secondary"
+                    onclick="document.getElementById('pod_sd_id').value='${sd.externalId}';document.getElementById('pod_qty').value='${sd.quantity}'">
+                    <i class="bi bi-check2-circle"></i> POD
+                </button>` : '<span class="badge bg-success">✓</span>'}
+            </td>
+        </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadTransitEvents() {
+    const id = document.getElementById('transitLoadId').value.trim(); if (!id) return;
+    const res = await apiGet('tms',`/api/v1/delivery-loads/${id}/transit-events`);
+    const data = res?.data ?? [];
+    if (!data.length) { document.getElementById('transitTable').innerHTML = emptyState('geo-alt','No transit events'); return; }
+    document.getElementById('transitTable').innerHTML =
+        `<table class="table mb-0"><thead><tr><th>Code</th><th>Description</th><th>Location</th><th>Source</th><th>Event At</th></tr></thead>
+        <tbody>${data.map(e=>`<tr>
+            <td>${mono(e.eventCode)}</td>
+            <td class="text-muted-sm">${e.eventDescription||'—'}</td>
+            <td class="text-muted-sm">${e.location||'—'}</td>
+            <td class="text-muted-sm">${e.source||'—'}</td>
+            <td class="text-muted-sm">${fmtDt(e.eventAt)}</td>
+        </tr>`).join('')}</tbody></table>`;
+}
+
+async function createLoad() {
+    const body = {
+        loadNumber: document.getElementById('ld_num').value,
+        shipmentExternalId: document.getElementById('ld_shp').value,
+        shipmentNumber: document.getElementById('ld_shp_num').value,
+        storeOrderExternalId: document.getElementById('ld_ord').value,
+        storeOrderNumber: document.getElementById('ld_ord_num').value,
+        campaignExternalId:'camp-001-uuid', campaignCode:'SUMMER25-TOY',
+        regionCode: document.getElementById('ld_region').value,
+        distributionDc:'DC-CHICAGO',
+        sku:'TOY-DINO-MIX-001', toyDescription:'Mystery Dinosaur Figures — Summer 2025',
+        totalCartons: parseInt(document.getElementById('ld_cartons').value)||4,
+        totalUnits: parseInt(document.getElementById('ld_units').value)||128000,
+        carrierName: document.getElementById('ld_carrier').value,
+        proNumber: document.getElementById('ld_pro').value,
+        requiredDeliveryDate:'2025-06-01',
+        createdBy:'tms.coordinator',
+        storeCartons:[
+            {storeExternalId:'str-001-uuid',storeNumber:'STR-0001',storeName:'Burger Bliss Chicago',city:'Chicago',stateCode:'IL',sku:'TOY-DINO-MIX-001',quantity:32000,cartonLabel:'CTN-001'},
+            {storeExternalId:'str-002-uuid',storeNumber:'STR-0002',storeName:'Burger Bliss Naperville',city:'Naperville',stateCode:'IL',sku:'TOY-DINO-MIX-001',quantity:32000,cartonLabel:'CTN-002'},
+            {storeExternalId:'str-003-uuid',storeNumber:'STR-0003',storeName:'Burger Bliss Milwaukee',city:'Milwaukee',stateCode:'WI',sku:'TOY-DINO-MIX-001',quantity:32000,cartonLabel:'CTN-003'},
+            {storeExternalId:'str-004-uuid',storeNumber:'STR-0004',storeName:'Burger Bliss Indianapolis',city:'Indianapolis',stateCode:'IN',sku:'TOY-DINO-MIX-001',quantity:32000,cartonLabel:'CTN-004'}
+        ]
+    };
+    const res = await apiPost('tms','/api/v1/delivery-loads',body);
+    showResponse('Create Delivery Load',res);
+    if(res?.success){showToast('Load created!');loadLoads();loadTmsStats();}else showToast(res?.message||'Error',true);
+}
+
+async function assignDriver() {
+    const id = document.getElementById('ld_action_id').value.trim();
+    if(!id){showToast('Enter load externalId',true);return;}
+    const res = await apiPost('tms',`/api/v1/delivery-loads/${id}/assign`,{
+        driverName: document.getElementById('ld_driver').value || 'Mike Johnson',
+        truckNumber: document.getElementById('ld_truck').value || 'XPO-TRUCK-5521',
+        pickupDate:'2025-05-20', estimatedDeliveryDate:'2025-05-30'
+    });
+    showResponse('Assign Driver',res);
+    if(res?.success){showToast('Driver assigned!');loadLoads();}else showToast(res?.message||'Error',true);
+}
+
+async function loadAction(action) {
+    const id = document.getElementById('ld_action_id').value.trim();
+    if(!id){showToast('Enter load externalId',true);return;}
+    const res = await apiPost('tms',`/api/v1/delivery-loads/${id}/${action}`,{triggeredBy:'tms.coordinator'});
+    showResponse(`Load ${action}`,res);
+    if(res?.success){
+        showToast(`Load ${action} done!`);
+        loadLoads(); loadTmsStats();
+        loadStoreDeliveries();
+    }else showToast(res?.message||'Error',true);
+}
+
+async function recordTransit() {
+    const id = document.getElementById('ld_action_id').value.trim();
+    if(!id){showToast('Enter load externalId',true);return;}
+    const res = await apiPost('tms',`/api/v1/delivery-loads/${id}/transit-events`,{
+        eventCode: document.getElementById('te_code').value || 'IN_TRANSIT',
+        eventDescription: document.getElementById('te_desc').value || 'En route',
+        location: document.getElementById('te_loc').value || 'In Transit',
+        source:'CARRIER_API'
+    });
+    showResponse('Transit Event',res);
+    if(res?.success){showToast('Transit event recorded!');loadTransitEvents();}else showToast(res?.message||'Error',true);
+}
+
+async function confirmPod() {
+    const loadId = document.getElementById('pod_load_id').value.trim();
+    const sdId   = document.getElementById('pod_sd_id').value.trim();
+    if(!loadId||!sdId){showToast('Enter both Load and Store Delivery IDs',true);return;}
+    const res = await apiPost('tms',`/api/v1/delivery-loads/${loadId}/store-deliveries/${sdId}/pod`,{
+        deliveredQuantity: parseInt(document.getElementById('pod_qty').value)||32000,
+        podSignatory: document.getElementById('pod_sig').value || 'Store Manager',
+        podNotes: document.getElementById('pod_notes').value || 'Delivery confirmed'
+    });
+    showResponse('Confirm POD',res);
+    if(res?.success){
+        showToast('POD confirmed!');
+        loadLoads(); loadTmsStats(); loadStoreDeliveries();
+        // Check if this might have completed the load
+        const checkRes = await apiGet('tms',`/api/v1/delivery-loads/${loadId}`);
+        if(checkRes?.data?.status === 'COMPLETED'){
+            showToast('🎉 ALL STORES CONFIRMED — FINAL EVENT: erp.tms.delivery.pod-confirmed PUBLISHED!');
+        }
+    }else showToast(res?.message||'Error',true);
+}
+</script>
+</body>
+</html>

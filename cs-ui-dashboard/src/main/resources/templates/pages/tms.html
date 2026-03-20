@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>TMS — Burger Bliss ERP</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <style>
+        body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif}
+        .navbar{background:#161b22!important;border-bottom:1px solid #30363d}
+        .navbar-brand{font-weight:700;font-size:1.1rem;color:#58a6ff!important}
+        .nav-link{color:#8b949e!important;font-size:.85rem;padding:.45rem .75rem!important;border-radius:6px;transition:all .15s}
+        .nav-link:hover,.nav-link.active{color:#e6edf3!important;background:#21262d}
+        .card{background:#161b22;border:1px solid #30363d;border-radius:8px}
+        .card-header{background:#1c2128;border-bottom:1px solid #30363d;font-weight:600;font-size:.875rem}
+        .table{color:#e6edf3;font-size:.8rem}
+        .table thead th{background:#1c2128;color:#8b949e;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;border-color:#30363d}
+        .table tbody tr{border-color:#21262d}.table tbody tr:hover{background:#1c2128}
+        .table td,.table th{vertical-align:middle}
+        .form-control,.form-select{background:#0d1117;border:1px solid #30363d;color:#e6edf3;font-size:.83rem}
+        .form-control:focus,.form-select:focus{background:#0d1117;border-color:#58a6ff;color:#e6edf3;box-shadow:0 0 0 .2rem rgba(88,166,255,.25)}
+        .form-label{font-size:.78rem;color:#8b949e;font-weight:500;margin-bottom:.25rem}
+        .btn-primary{background:#238636;border-color:#2ea043;font-size:.82rem}
+        .btn-primary:hover{background:#2ea043;border-color:#3fb950}
+        .btn-outline-secondary{border-color:#30363d;color:#8b949e;font-size:.82rem}
+        .btn-outline-secondary:hover{background:#21262d;color:#e6edf3;border-color:#30363d}
+        .btn-action{font-size:.75rem;padding:.25rem .55rem}
+        .badge-status{font-size:.7rem;padding:.3em .6em;border-radius:4px}
+        .status-active,.status-allocated,.status-completed,.status-delivered,.status-pod_confirmed,.status-dispatched,.status-putaway_completed,.status-picked,.status-awarded{background:#1a4a1a;color:#3fb950}
+        .status-draft,.status-created,.status-pending,.status-scheduled{background:#1f2937;color:#8b949e}
+        .status-submitted,.status-in_transit,.status-picking,.status-assigned,.status-open,.status-under_review{background:#1a2e4a;color:#58a6ff}
+        .status-cancelled,.status-failed{background:#3a1a1a;color:#f85149}
+        .status-packed,.status-manifested,.status-arrived,.status-received{background:#2d1f3d;color:#bc8cff}
+        .status-shipped,.status-out_for_delivery{background:#1a3a2a;color:#56d364}
+        .page-header{border-bottom:1px solid #30363d;padding-bottom:1rem;margin-bottom:1.5rem}
+        .page-header h4{font-weight:700;color:#e6edf3;margin:0}
+        .page-header p{color:#8b949e;font-size:.85rem;margin:0}
+        .section-divider{border-color:#30363d;margin:1.5rem 0}
+        .stat-card{border:1px solid #30363d;border-radius:8px;background:#161b22;padding:1rem 1.25rem}
+        .stat-card .stat-value{font-size:1.75rem;font-weight:700;color:#58a6ff}
+        .stat-card .stat-label{font-size:.75rem;color:#8b949e;margin-top:.1rem}
+        .mono{font-family:'SFMono-Regular',Consolas,monospace;font-size:.78rem;color:#79c0ff}
+        .text-muted-sm{font-size:.75rem;color:#8b949e!important}
+        .modal-content{background:#161b22;border:1px solid #30363d}
+        .modal-header{border-bottom:1px solid #30363d}
+        .modal-footer{border-top:1px solid #30363d}
+        pre.response-json{background:#0d1117;color:#3fb950;font-size:.75rem;max-height:420px;overflow-y:auto;border-radius:6px;padding:1rem;border:1px solid #30363d}
+        #loadingOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center}
+        #loadingOverlay.active{display:flex}
+        .toast-container{position:fixed;top:1rem;right:1rem;z-index:10000}
+        .toast{background:#1c2128;border:1px solid #30363d;color:#e6edf3}
+        .toast.success .toast-body{color:#3fb950}
+        .toast.error .toast-body{color:#f85149}
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+        .empty-state{text-align:center;padding:3rem 1rem;color:#8b949e}
+        .empty-state i{font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4}
+    </style>
+</head>
+<body>
+<div id="loadingOverlay"><div class="text-center"><div class="spinner-border text-primary"></div><div class="mt-2 small text-white">Processing...</div></div></div>
+<div class="toast-container" id="toastContainer"></div>
+<div class="modal fade" id="responseModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="responseModalTitle">API Response</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><pre class="response-json" id="responseModalBody"></pre></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      <button class="btn btn-sm btn-primary" onclick="location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+    </div>
+  </div></div>
+</div>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="/"><i class="bi bi-boxes me-1"></i>Burger Bliss ERP</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nb"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nb">
+      <ul class="navbar-nav me-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="/crm"><i class="bi bi-megaphone"></i> CRM <span class="badge bg-primary" style="font-size:.65rem">8081</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/vendor"><i class="bi bi-building"></i> Vendor <span class="badge bg-primary" style="font-size:.65rem">8082</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/procurement"><i class="bi bi-file-earmark-text"></i> Procurement <span class="badge bg-primary" style="font-size:.65rem">8083</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/wms-inbound"><i class="bi bi-box-arrow-in-down"></i> WMS In <span class="badge bg-primary" style="font-size:.65rem">8084</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/oms"><i class="bi bi-shop"></i> OMS <span class="badge bg-primary" style="font-size:.65rem">8085</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/wms-outbound"><i class="bi bi-box-arrow-up-right"></i> WMS Out <span class="badge bg-primary" style="font-size:.65rem">8086</span></a></li>
+          <li class="nav-item"><a class="nav-link active" href="/tms"><i class="bi bi-truck"></i> TMS <span class="badge bg-primary" style="font-size:.65rem">8087</span></a></li>
+      </ul>
+      <span class="badge bg-success ms-2 px-3 py-2"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>SUMMER25-TOY</span>
+    </div>
+  </div>
+</nav>
+<main class="container-fluid px-4 py-4">
+
+<div class="page-header"><h4><i class="bi bi-truck me-2 text-primary"></i>TMS — Delivery & Proof of Delivery</h4>
+<p>Track carrier delivery loads to stores. POD confirmation triggers the final supply chain event. Port 8087</p></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Total Loads</div><div class="stat-value" id="st1">—</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">In Transit</div><div class="stat-value text-info" id="st2">—</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value text-success" id="st3">—</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Units Delivered</div><div class="stat-value text-warning" id="st4">—</div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-12 col-xl-8">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-truck"></i> Delivery Loads</span>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" style="width:140px" id="loadFilter" onchange="loadLoads()">
+            <option value="">All</option><option value="/status/CREATED">CREATED</option>
+            <option value="/status/ASSIGNED">ASSIGNED</option><option value="/status/IN_TRANSIT">IN_TRANSIT</option>
+            <option value="/status/COMPLETED">COMPLETED</option>
+          </select>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadLoads()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+      </div>
+      <div class="card-body p-0"><div class="table-responsive"><div id="loadsTable"></div></div></div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-shop"></i> Store Deliveries</div>
+      <div class="card-body pb-2">
+        <div class="input-group mb-3" style="max-width:460px">
+          <input class="form-control" id="deliveriesLoadId" placeholder="Load externalId"/>
+          <button class="btn btn-outline-secondary" onclick="loadDeliveries()">Load Deliveries</button>
+        </div>
+        <div id="deliveriesTable"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-geo-alt"></i> Transit Events</div>
+      <div class="card-body pb-2">
+        <div class="input-group mb-3" style="max-width:460px">
+          <input class="form-control" id="transitLoadId" placeholder="Load externalId"/>
+          <button class="btn btn-outline-secondary" onclick="loadTransit()">Load Events</button>
+        </div>
+        <div id="transitTable"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-play-circle"></i> Load Lifecycle</div>
+      <div class="card-body">
+        <div class="mb-2"><label class="form-label">Load External ID</label><input class="form-control" id="ld_id" placeholder="Load externalId"/></div>
+        <div class="mb-2"><label class="form-label">Driver Name (for assign)</label><input class="form-control" id="ld_driver" placeholder="Mike Johnson"/></div>
+        <div class="mb-3"><label class="form-label">Truck Number (for assign)</label><input class="form-control" id="ld_truck" placeholder="XPO-TRUCK-5521"/></div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-secondary btn-sm" onclick="assignDriver()"><i class="bi bi-person-check me-1"></i>Assign Driver</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="markInTransit()"><i class="bi bi-truck me-1"></i>Mark In Transit</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="recordTransit()"><i class="bi bi-pin-map me-1"></i>Record Transit Event</button>
+        </div>
+        <hr style="border-color:#30363d;margin:1rem 0"/>
+        <div class="mb-2"><label class="form-label">Transit Code</label><input class="form-control" id="te_code" placeholder="IN_TRANSIT"/></div>
+        <div class="mb-2"><label class="form-label">Location</label><input class="form-control" id="te_loc" placeholder="Chicago, IL"/></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-check2-circle"></i> Confirm Store POD</div>
+      <div class="card-body">
+        <p class="text-muted-sm">When all stores confirm POD, the load auto-completes and publishes <span class="mono">erp.tms.delivery.pod-confirmed</span> — the FINAL supply chain event.</p>
+        <div class="mb-2"><label class="form-label">Load External ID</label><input class="form-control" id="pod_load_id" placeholder="Load externalId"/></div>
+        <div class="mb-2"><label class="form-label">Store Delivery External ID</label><input class="form-control" id="pod_sd_id" placeholder="Store delivery externalId"/></div>
+        <div class="mb-2"><label class="form-label">Delivered Qty</label><input type="number" class="form-control" id="pod_qty" placeholder="32000"/></div>
+        <div class="mb-2"><label class="form-label">POD Signatory *</label><input class="form-control" id="pod_sig" placeholder="Store Manager Name"/></div>
+        <div class="mb-3"><label class="form-label">Notes</label><input class="form-control" id="pod_notes" placeholder="All units received"/></div>
+        <button class="btn btn-primary w-100" onclick="confirmPod()"><i class="bi bi-check2-circle me-1"></i>Confirm POD → FINAL EVENT</button>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+const PROXY='/api/proxy';
+function showLoading(){document.getElementById('loadingOverlay').classList.add('active')}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('active')}
+function showToast(msg,isError=false){
+    const div=document.createElement('div');
+    div.className=`toast align-items-center ${isError?'error':'success'} show`;div.setAttribute('role','alert');
+    div.innerHTML=`<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    document.getElementById('toastContainer').appendChild(div);setTimeout(()=>div.remove(),4500);
+}
+function showResponse(title,data){
+    document.getElementById('responseModalTitle').textContent=title;
+    document.getElementById('responseModalBody').textContent=typeof data==='string'?data:JSON.stringify(data,null,2);
+    new bootstrap.Modal(document.getElementById('responseModal')).show();
+}
+function statusBadge(s){if(!s)return'<span class="text-muted">—</span>';const c='status-'+s.toLowerCase().replace(/_/g,'-');return `<span class="badge badge-status ${c}">${s}</span>`;}
+function mono(v){if(!v)return'<span class="text-muted">—</span>';return `<span class="mono">${v}</span>`;}
+function fmtNum(n){return n!=null?n.toLocaleString():'—';}
+function fmtDate(d){return d?d.substring(0,10):'—';}
+function fmtDt(d){return d?d.replace('T',' ').substring(0,16):'—';}
+async function apiGet(service,path){const r=await fetch(`${PROXY}/${service}${path}`);return r.json();}
+async function apiPost(service,path,body={}){
+    showLoading();
+    try{const r=await fetch(`${PROXY}/${service}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}
+    finally{hideLoading();}
+}
+function emptyState(icon,msg){return `<div class="empty-state"><i class="bi bi-${icon}"></i><div>${msg}</div></div>`;}
+async function loadTable(service,path,containerId,renderFn){
+    const c=document.getElementById(containerId);
+    c.innerHTML='<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+    try{const res=await apiGet(service,path);const data=res?.data??res;
+        if(!data||(Array.isArray(data)&&data.length===0)){c.innerHTML=emptyState('inbox','No records found');return;}
+        c.innerHTML=renderFn(Array.isArray(data)?data:[data]);
+    }catch(e){c.innerHTML=emptyState('exclamation-triangle','Failed to load');}
+}
+
+
+document.addEventListener('DOMContentLoaded',()=>{loadLoads();loadTmsStats();});
+async function loadTmsStats(){
+  const [a,t,c]=await Promise.allSettled([apiGet('tms','/api/v1/delivery-loads'),apiGet('tms','/api/v1/delivery-loads/status/IN_TRANSIT'),apiGet('tms','/api/v1/delivery-loads/status/COMPLETED')]);
+  const ad=a?.value?.data;document.getElementById('st1').textContent=Array.isArray(ad)?ad.length:'—';
+  document.getElementById('st2').textContent=Array.isArray(t?.value?.data)?t.value.data.length:'—';
+  const cd=c?.value?.data;document.getElementById('st3').textContent=Array.isArray(cd)?cd.length:'—';
+  if(Array.isArray(cd)){document.getElementById('st4').textContent=cd.reduce((s,l)=>s+(l.totalUnits||0),0).toLocaleString();}
+}
+function renderLoads(data){
+  if(!data.length)return emptyState('truck','No delivery loads');
+  return `<table class="table table-hover mb-0"><thead><tr><th>Load #</th><th>Carrier</th><th>PRO</th><th>Cartons</th><th>Region</th><th>Status</th><th></th></tr></thead><tbody>
+  ${data.map(l=>`<tr><td>${mono(l.loadNumber)}</td><td class="text-muted-sm">${l.carrierName||'—'}</td><td>${mono(l.proNumber||'—')}</td>
+  <td>${fmtNum(l.totalCartons)}</td><td class="text-muted-sm">${l.regionCode||'—'}</td><td>${statusBadge(l.status)}</td>
+  <td><button class="btn btn-action btn-outline-secondary" onclick="selectLoad('${l.externalId}')"><i class="bi bi-arrow-right-circle"></i></button></td></tr>`).join('')}</tbody></table>`;
+}
+function selectLoad(id){
+  document.getElementById('ld_id').value=id;document.getElementById('deliveriesLoadId').value=id;
+  document.getElementById('transitLoadId').value=id;document.getElementById('pod_load_id').value=id;
+  loadDeliveries();loadTransit();
+}
+async function loadLoads(){const f=document.getElementById('loadFilter').value;await loadTable('tms','/api/v1/delivery-loads'+f,'loadsTable',renderLoads);}
+async function loadDeliveries(){
+  const id=document.getElementById('deliveriesLoadId').value.trim();if(!id)return;
+  const res=await apiGet('tms',`/api/v1/delivery-loads/${id}`);const data=res?.data?.storeDeliveries??[];
+  if(!data.length){document.getElementById('deliveriesTable').innerHTML=emptyState('shop','No deliveries');return;}
+  document.getElementById('deliveriesTable').innerHTML=`<table class="table mb-0"><thead><tr><th>Store</th><th>City</th><th>Qty</th><th>Delivered</th><th>Signatory</th><th>Status</th><th>POD</th></tr></thead><tbody>
+  ${data.map(sd=>`<tr><td>${mono(sd.storeNumber)}</td><td class="text-muted-sm">${sd.city||''}, ${sd.stateCode||''}</td>
+  <td>${fmtNum(sd.quantity)}</td><td>${fmtNum(sd.deliveredQuantity)}</td><td class="text-muted-sm">${sd.podSignatory||'—'}</td><td>${statusBadge(sd.status)}</td>
+  <td>${sd.status!=='POD_CONFIRMED'?`<button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('pod_sd_id').value='${sd.externalId}';document.getElementById('pod_qty').value='${sd.quantity}'"><i class="bi bi-check2-circle"></i></button>`:'<span class="badge bg-success">✓</span>'}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+async function loadTransit(){
+  const id=document.getElementById('transitLoadId').value.trim();if(!id)return;
+  const res=await apiGet('tms',`/api/v1/delivery-loads/${id}/transit-events`);const data=res?.data??[];
+  if(!data.length){document.getElementById('transitTable').innerHTML=emptyState('geo-alt','No transit events');return;}
+  document.getElementById('transitTable').innerHTML=`<table class="table mb-0"><thead><tr><th>Code</th><th>Location</th><th>Source</th><th>At</th></tr></thead>
+  <tbody>${data.map(e=>`<tr><td>${mono(e.eventCode)}</td><td class="text-muted-sm">${e.location||'—'}</td><td class="text-muted-sm">${e.source||'—'}</td><td class="text-muted-sm">${fmtDt(e.eventAt)}</td></tr>`).join('')}</tbody></table>`;
+}
+async function assignDriver(){
+  const id=document.getElementById('ld_id').value.trim();if(!id){showToast('Enter load externalId',true);return;}
+  const res=await apiPost('tms',`/api/v1/delivery-loads/${id}/assign`,{driverName:document.getElementById('ld_driver').value||'Mike Johnson',truckNumber:document.getElementById('ld_truck').value||'TRUCK-001',pickupDate:'2025-05-20',estimatedDeliveryDate:'2025-05-30'});
+  showResponse('Assign Driver',res);if(res?.success){showToast('Driver assigned!');loadLoads();loadTmsStats();}else showToast(res?.message||'Error',true);
+}
+async function markInTransit(){
+  const id=document.getElementById('ld_id').value.trim();if(!id){showToast('Enter load externalId',true);return;}
+  const res=await apiPost('tms',`/api/v1/delivery-loads/${id}/in-transit`,{triggeredBy:'tms.coordinator'});
+  showResponse('In Transit',res);if(res?.success){showToast('Load in transit! All stores OUT_FOR_DELIVERY');loadLoads();loadTmsStats();loadDeliveries();}else showToast(res?.message||'Error',true);
+}
+async function recordTransit(){
+  const id=document.getElementById('ld_id').value.trim();if(!id){showToast('Enter load externalId',true);return;}
+  const res=await apiPost('tms',`/api/v1/delivery-loads/${id}/transit-events`,{eventCode:document.getElementById('te_code').value||'IN_TRANSIT',location:document.getElementById('te_loc').value||'In Transit',source:'CARRIER_API'});
+  showResponse('Transit Event',res);if(res?.success){showToast('Event recorded!');loadTransit();}else showToast(res?.message||'Error',true);
+}
+async function confirmPod(){
+  const loadId=document.getElementById('pod_load_id').value.trim();const sdId=document.getElementById('pod_sd_id').value.trim();
+  if(!loadId||!sdId){showToast('Enter both Load and Store Delivery IDs',true);return;}
+  const res=await apiPost('tms',`/api/v1/delivery-loads/${loadId}/store-deliveries/${sdId}/pod`,{
+    deliveredQuantity:parseInt(document.getElementById('pod_qty').value)||32000,
+    podSignatory:document.getElementById('pod_sig').value||'Store Manager',
+    podNotes:document.getElementById('pod_notes').value||'Delivery confirmed'});
+  showResponse('Confirm POD',res);
+  if(res?.success){
+    showToast('POD confirmed!');loadLoads();loadTmsStats();loadDeliveries();
+    const check=await apiGet('tms',`/api/v1/delivery-loads/${loadId}`);
+    if(check?.data?.status==='COMPLETED')showToast('🎉 ALL STORES POD CONFIRMED — erp.tms.delivery.pod-confirmed PUBLISHED!');
+  }else showToast(res?.message||'Error',true);
+}
+</script>
+</body>
+</html>

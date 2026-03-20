@@ -1,0 +1,271 @@
+{% extends "partials/base.html" %}
+{% set active_page = "architecture" %}
+{% block title %}Architecture{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h4><i class="bi bi-diagram-3 me-2 text-primary"></i>System Architecture — Connected Enterprise</h4>
+  <p>How the 8-service ecosystem is designed, why each component exists, and how events flow end-to-end.</p>
+</div>
+
+<div class="row g-4">
+
+  <!-- Overview card -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-map me-2"></i>Big Picture</div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3" style="color:#58a6ff">What we are building</h6>
+            <p style="font-size:.875rem;color:#c9d1d9;line-height:1.7">
+              Burger Bliss is running its <strong>SUMMER25-TOY</strong> campaign — placing
+              mystery toy figures inside kids meals across <strong>3,200 US restaurant locations</strong>.
+              This simulation models the full enterprise supply chain from marketing campaign launch
+              to physical proof-of-delivery at every store, orchestrated across 8 microservices
+              communicating via RabbitMQ domain events.
+            </p>
+            <p style="font-size:.875rem;color:#c9d1d9;line-height:1.7">
+              The <strong>Flask Control Tower</strong> is the AI brain on top: it listens to all
+              events, maintains a BI read-model, and lets any stakeholder ask questions in plain
+              English — from the CEO asking "how many toys have reached our restaurants?" to an
+              operations manager asking "which loads are still in transit?".
+            </p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3" style="color:#58a6ff">Technology Stack</h6>
+            <table class="table table-sm" style="font-size:.8rem">
+              <tbody>
+                <tr><td class="text-dim" style="width:160px">Spring Boot services</td><td class="mono">3.4.3 / JDK 21 / MySQL 8</td></tr>
+                <tr><td class="text-dim">Message broker</td><td class="mono">RabbitMQ 4.2.5 (topic exchange)</td></tr>
+                <tr><td class="text-dim">UI Dashboard</td><td class="mono">Spring Boot Thymeleaf + Bootstrap 5</td></tr>
+                <tr><td class="text-dim">Control Tower</td><td class="mono">Python 3.12 + Flask + SQLAlchemy</td></tr>
+                <tr><td class="text-dim">AI Engine</td><td class="mono">Anthropic Claude (claude-sonnet-4)</td></tr>
+                <tr><td class="text-dim">BI Database</td><td class="mono">SQLite (denormalised read-model)</td></tr>
+                <tr><td class="text-dim">Persistence (SB)</td><td class="mono">MySQL 8, separate DB per service</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services grid -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-grid me-2"></i>Service Directory — Roles & Responsibilities</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th style="width:130px">Service</th>
+                <th style="width:60px">Port</th>
+                <th style="width:120px">Technology</th>
+                <th>Responsibility</th>
+                <th>Key Outbound Event</th>
+                <th>Consumes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set services = [
+                ('cs-crm-api','8081','Spring Boot + MySQL','Manages toy surprise campaigns. Defines campaign lifecycle: DRAFT → ACTIVE → PAUSED → COMPLETED. Triggers the supply chain.',
+                 'erp.crm.campaign.launched','Nothing — this is the source of truth for campaigns.'),
+                ('cs-vendor-api','8082','Spring Boot + MySQL','Manages vendors, RFQs and competitive quoting. Campaigns require vendor selection before toys can be manufactured.',
+                 'erp.vendor.rfq.awarded','erp.crm.campaign.launched'),
+                ('cs-procurement-api','8083','Spring Boot + MySQL','Creates Purchase Orders when a vendor is awarded. Tracks PO through 7 lifecycle stages from DRAFT to COMPLETED.',
+                 'erp.procurement.po.ready-to-ship','erp.vendor.rfq.awarded'),
+                ('cs-wms-inbound-api','8084','Spring Boot + MySQL','Receives toys from overseas vendors. Manages ASN lifecycle, dock scheduling, receiving, QC and warehouse putaway.',
+                 'erp.wms.inbound.putaway.completed','erp.procurement.po.ready-to-ship'),
+                ('cs-oms-api','8085','Spring Boot + MySQL','Creates store orders from marketing plans. Allocates available inventory evenly across all stores in a region.',
+                 'erp.oms.store-order.allocated','erp.wms.inbound.putaway.completed'),
+                ('cs-wms-outbound-api','8086','Spring Boot + MySQL','Fulfils allocated orders by creating pick waves, packing cartons, manifesting with carriers and dispatching.',
+                 'erp.wms.outbound.shipment.dispatched','erp.oms.store-order.allocated'),
+                ('cs-tms-api','8087','Spring Boot + MySQL','Tracks carrier loads to individual restaurant stores. Issues proof-of-delivery per store.',
+                 'erp.tms.delivery.pod-confirmed','erp.wms.outbound.shipment.dispatched'),
+                ('cs-ui-dashboard','8090','Spring Boot Thymeleaf','Bootstrap 5 dark-theme BFF dashboard. Proxies all 7 service APIs for manual testing and lifecycle operations.','—','—'),
+                ('cs-control-tower','5000','Python 3.12 Flask','AI control tower. Subscribes to all RabbitMQ events, maintains a BI read-model, serves an Anthropic-powered NL query interface.',
+                 'n/a (reads only)','erp.# (all events)'),
+              ] %}
+              {% for name, port, tech, role, outbound, consumes in services %}
+              <tr>
+                <td><span class="mono" style="font-size:.75rem">{{ name }}</span></td>
+                <td><span class="badge bg-primary" style="font-size:.65rem">{{ port }}</span></td>
+                <td class="text-dim" style="font-size:.75rem">{{ tech }}</td>
+                <td style="font-size:.78rem;color:#c9d1d9;max-width:300px">{{ role }}</td>
+                <td><span class="mono" style="font-size:.7rem;color:#3fb950">{{ outbound }}</span></td>
+                <td class="text-dim" style="font-size:.72rem">{{ consumes }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event flow -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-broadcast me-2"></i>RabbitMQ Event Chain</div>
+      <div class="card-body">
+        <p class="text-dim mb-3" style="font-size:.8rem">
+          All services publish to <span class="mono">erp.topic.exchange</span> (durable, topic type).
+          Routing keys follow the pattern <span class="mono">erp.{service}.{entity}.{action}</span>.
+          The Control Tower subscribes to <span class="mono">erp.#</span> (wildcard) to capture every event.
+        </p>
+        {% set chain = [
+          ('erp.crm.campaign.launched','CRM','Campaign goes live — toy type and volume confirmed','#1a2e4a','#58a6ff'),
+          ('erp.vendor.rfq.awarded','Vendor','Contract awarded — Vietnamese factory selected','#1a2e4a','#58a6ff'),
+          ('erp.procurement.po.ready-to-ship','Procurement','500,000 units manufactured and ready','#2d1f3d','#bc8cff'),
+          ('erp.wms.inbound.putaway.completed','WMS Inbound','Toys in warehouse, inventory available','#1a4a1a','#3fb950'),
+          ('erp.oms.store-order.allocated','OMS','128,000 units allocated to Midwest stores','#1a4a1a','#3fb950'),
+          ('erp.wms.outbound.shipment.dispatched','WMS Outbound','Cartons loaded on XPO truck, PRO issued','#2d1f3d','#bc8cff'),
+          ('erp.tms.delivery.pod-confirmed','TMS','All stores signed — toys in restaurants ✓','#1a4a1a','#3fb950'),
+        ] %}
+        <div class="d-flex flex-column gap-2">
+          {% for key, svc, desc, bg, color in chain %}
+          <div class="d-flex align-items-start gap-2 p-2 rounded" style="background:{{ bg }};border:1px solid #30363d">
+            <span class="badge" style="background:{{ color }}20;color:{{ color }};font-size:.65rem;flex-shrink:0;margin-top:.1rem">{{ svc }}</span>
+            <div>
+              <div class="mono" style="font-size:.72rem;color:{{ color }}">{{ key }}</div>
+              <div class="text-dim" style="font-size:.72rem">{{ desc }}</div>
+            </div>
+          </div>
+          {% if not loop.last %}
+          <div class="text-center" style="color:#30363d;font-size:.9rem">▼</div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Two-pass pipeline -->
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-cpu me-2"></i>AI Two-Pass NL Pipeline</div>
+      <div class="card-body">
+        <p class="text-dim mb-3" style="font-size:.8rem">
+          When a stakeholder asks a question, the Control Tower runs two Claude API calls:
+        </p>
+        <div class="d-flex flex-column gap-3">
+          <div class="p-3 rounded" style="background:#1a2e4a;border:1px solid #30363d">
+            <div class="fw-bold mb-1" style="color:#58a6ff;font-size:.82rem">
+              <i class="bi bi-1-circle me-1"></i>Pass 1 — Parse
+            </div>
+            <div class="text-dim" style="font-size:.8rem;line-height:1.6">
+              User's English question is sent to Claude with a system prompt that describes
+              all 7 service API endpoints. Claude responds with a JSON object specifying the
+              <span class="mono">service</span>, <span class="mono">method</span>,
+              <span class="mono">path</span>, and optional <span class="mono">payload</span>.
+            </div>
+            <pre class="code-block mt-2" style="font-size:.7rem">{
+  "service": "tms",
+  "method": "GET",
+  "path": "/api/v1/delivery-loads/status/COMPLETED",
+  "intent_summary": "fetch completed delivery loads"
+}</pre>
+          </div>
+          <div class="text-center text-dim" style="font-size:.8rem">↓ Flask calls the Spring Boot API ↓</div>
+          <div class="p-3 rounded" style="background:#1a4a1a;border:1px solid #30363d">
+            <div class="fw-bold mb-1" style="color:#3fb950;font-size:.82rem">
+              <i class="bi bi-2-circle me-1"></i>Pass 2 — Narrate
+            </div>
+            <div class="text-dim" style="font-size:.8rem;line-height:1.6">
+              The raw JSON API response is sent back to Claude with the original question.
+              Claude synthesises a friendly, business-focused English answer, highlighting
+              key numbers, statuses and anomalies.
+            </div>
+            <div class="mt-2 p-2 rounded" style="background:#0d1117;border:1px solid #21262d;color:#c9d1d9;font-size:.78rem;line-height:1.6">
+              "Two delivery loads for SUMMER25-TOY are COMPLETED. LOAD-2025-001 delivered
+              128,000 Dino toys to 4 Midwest stores via XPO, and LOAD-2025-002 delivered
+              104,000 units to 4 Southeast stores via Old Dominion. All stores have confirmed POD."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-database me-2"></i>BI Database Design</div>
+      <div class="card-body">
+        <p class="text-dim mb-3" style="font-size:.8rem">
+          The Control Tower maintains its own SQLite read-model, populated by the RabbitMQ subscriber.
+          This enables fast analytics without hitting the operational databases.
+        </p>
+        <table class="table table-sm" style="font-size:.77rem">
+          <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">erp_events</td><td class="text-dim">Append-only log of every RabbitMQ message received</td></tr>
+            <tr><td class="mono">campaign_summaries</td><td class="text-dim">Denormalised rollup per campaign code, updated per event</td></tr>
+            <tr><td class="mono">delivery_tracking</td><td class="text-dim">Per-region delivery status from TMS pod-confirmed events</td></tr>
+            <tr><td class="mono">chat_history</td><td class="text-dim">Every AI chat interaction stored for audit and replay</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stakeholder use cases -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-people me-2"></i>Stakeholder Use Cases — What You Can Ask</div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% set cases = [
+            ('bi-person-badge','CEO / CMO',[
+              'How many stores have received toys for SUMMER25-TOY?',
+              'What is the current campaign status?',
+              'How many units have been delivered vs allocated?',
+            ]),
+            ('bi-truck','Supply Chain VP',[
+              'Which delivery loads are still in transit?',
+              'Show me all completed shipments.',
+              'Which carrier handled the most deliveries?',
+            ]),
+            ('bi-building','Procurement Manager',[
+              'What is the status of PO-2025-001?',
+              'Show all purchase orders for SUMMER25-TOY.',
+              'Which vendors submitted quotes for the last RFQ?',
+            ]),
+            ('bi-shop','Regional Operations',[
+              'How many toys were allocated to US-MIDWEST stores?',
+              'List all store orders in the ALLOCATED status.',
+              'What is the inventory level for TOY-DINO-MIX-001?',
+            ]),
+            ('bi-boxes','Warehouse Manager',[
+              'Show me all ASNs that are still in transit.',
+              'What is the current available inventory for the campaign?',
+              'Which pick waves are still in PICKING status?',
+            ]),
+            ('bi-broadcast','IT / DevOps',[
+              'Are all 7 microservices healthy?',
+              'List all pick waves and their current status.',
+              'Show all dispatched shipments.',
+            ]),
+          ] %}
+          {% for icon, role, questions in cases %}
+          <div class="col-12 col-sm-6 col-xl-4">
+            <div class="p-3 rounded h-100" style="background:#161b22;border:1px solid #30363d">
+              <div class="fw-bold mb-2" style="font-size:.82rem;color:#e6edf3">
+                <i class="bi {{ icon }} me-2 text-primary"></i>{{ role }}
+              </div>
+              {% for q in questions %}
+              <a href="/chat?q={{ q | urlencode }}" class="d-block p-2 mb-1 rounded text-dim"
+                 style="font-size:.77rem;background:#0d1117;border:1px solid #21262d;text-decoration:none;transition:.15s"
+                 onmouseover="this.style.borderColor='#58a6ff'" onmouseout="this.style.borderColor='#21262d'">
+                <i class="bi bi-chat-right-text me-1 text-primary" style="font-size:.65rem"></i>{{ q }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

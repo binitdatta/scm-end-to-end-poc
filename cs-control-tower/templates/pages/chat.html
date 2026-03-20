@@ -1,0 +1,223 @@
+{% extends "partials/base.html" %}
+{% set active_page = "chat" %}
+{% block title %}AI Chat{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h4><i class="bi bi-chat-dots me-2 text-primary"></i>AI Chat — Natural Language Supply Chain Q&A</h4>
+    <p>Ask any supply chain question in plain English. Claude parses your intent, calls the right API, and explains the results.</p>
+  </div>
+  {% if not api_key_set %}
+  <div class="alert alert-warning py-2 px-3 mb-0" style="font-size:.8rem;border-color:#d29922;background:#2d2200">
+    <i class="bi bi-exclamation-triangle me-1"></i>
+    <strong>ANTHROPIC_API_KEY</strong> not set in <code>.env</code>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <!-- Chat window -->
+  <div class="col-12 col-xl-8">
+    <div class="card" style="height:calc(100vh - 220px);min-height:580px;display:flex;flex-direction:column">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-robot me-2"></i>Claude — Supply Chain Assistant</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearChat()">
+            <i class="bi bi-trash me-1"></i>Clear
+          </button>
+          <span class="badge bg-success"><span class="pulse me-1"></span>Ready</span>
+        </div>
+      </div>
+
+      <!-- Bubbles -->
+      <div id="chatWrap" class="chat-wrap flex-grow-1">
+        <!-- Welcome message -->
+        <div class="bubble bubble-ai">
+          <i class="bi bi-robot me-1 text-primary"></i>
+          <strong>Hello!</strong> I'm your AI supply chain assistant, powered by Anthropic Claude.<br><br>
+          I have live access to all 7 ERP microservices for the <strong>SUMMER25-TOY</strong> campaign.
+          Ask me anything about campaigns, vendors, purchase orders, inventory, store orders,
+          shipments, or delivery tracking.<br><br>
+          <span class="text-dim" style="font-size:.78rem">Try: "How many toys have been delivered?" or "List all completed delivery loads."</span>
+        </div>
+        <!-- History from previous sessions -->
+        {% for h in history | reverse %}
+        <div class="bubble bubble-user">{{ h.user_question }}</div>
+        <div class="bubble bubble-ai">
+          {{ h.ai_response | replace('\n', '<br>') | safe }}
+          {% if h.service_called %}
+          <div class="bubble-service">
+            <i class="bi bi-gear me-1"></i>Called: <span class="mono">{{ h.service_called }}</span>
+            {% if h.api_endpoint %}· <span class="mono">{{ h.api_endpoint }}</span>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Input -->
+      <div class="card-body border-top p-3" style="border-color:#30363d!important">
+        <div class="input-group">
+          <input type="text" id="chatInput" class="form-control"
+                 placeholder="Ask about campaigns, inventory, deliveries, orders…"
+                 onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();event.preventDefault()}"
+                 autofocus/>
+          <button class="btn btn-primary px-4" id="sendBtn" onclick="sendMessage()">
+            <i class="bi bi-send-fill me-1"></i>Ask
+          </button>
+        </div>
+        <div class="text-dim mt-2" style="font-size:.72rem">
+          Press Enter to send · Claude parses your question → calls the API → explains the result
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: suggestions + debug -->
+  <div class="col-12 col-xl-4">
+    <!-- Suggested questions -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-lightbulb me-2"></i>Suggested Questions</div>
+      <div class="card-body p-0">
+        {% set suggestions = [
+          ('Campaign Status','How many campaigns are active?','bi-megaphone'),
+          ('Inventory','What is the available inventory for TOY-DINO-MIX-001?','bi-boxes'),
+          ('Deliveries','How many toys have been delivered to stores?','bi-truck'),
+          ('Store Orders','List all store orders that have been allocated.','bi-shop'),
+          ('In Transit','Which delivery loads are currently in transit?','bi-geo-alt'),
+          ('Shipments','Show me all dispatched shipments.','bi-box-seam'),
+          ('Vendors','List all active vendors.','bi-building'),
+          ('Purchase Orders','What is the status of our purchase orders?','bi-file-earmark-text'),
+          ('Pick Waves','Are there any pick waves still in picking status?','bi-list-check'),
+          ('POD','Which loads have all stores POD confirmed?','bi-check2-circle'),
+        ] %}
+        {% for label, q, icon in suggestions %}
+        <button class="btn w-100 text-start px-3 py-2 border-0 border-bottom"
+                style="background:transparent;border-color:#21262d!important;border-radius:0;font-size:.8rem;color:#c9d1d9;transition:.15s"
+                onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='transparent'"
+                onclick="fillQuestion('{{ q }}')">
+          <i class="bi {{ icon }} me-2 text-primary" style="font-size:.75rem"></i>
+          <span style="color:#8b949e;font-size:.7rem">{{ label }}:</span> {{ q }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Debug panel - last API call -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bug me-2"></i>Last API Call Debug</div>
+      <div class="card-body p-2">
+        <div id="debugPanel" class="text-dim" style="font-size:.75rem">
+          Send a message to see the API call details here.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const wrap = document.getElementById('chatWrap');
+let lastDebug = null;
+
+// Pre-fill from URL param
+const urlQ = new URLSearchParams(window.location.search).get('q');
+if (urlQ) { document.getElementById('chatInput').value = urlQ; sendMessage(); }
+
+wrap.scrollTop = wrap.scrollHeight;
+
+function fillQuestion(q) {
+    document.getElementById('chatInput').value = q;
+    document.getElementById('chatInput').focus();
+}
+
+function addBubble(text, isUser, service, endpoint) {
+    const div = document.createElement('div');
+    div.className = isUser ? 'bubble bubble-user' : 'bubble bubble-ai';
+    if (isUser) {
+        div.textContent = text;
+    } else {
+        div.innerHTML = text.replace(/\n/g, '<br>');
+        if (service) {
+            const meta = document.createElement('div');
+            meta.className = 'bubble-service';
+            meta.innerHTML = `<i class="bi bi-gear me-1"></i>Called: <span class="mono">${service}</span>${endpoint ? ' · <span class="mono">'+endpoint+'</span>' : ''}`;
+            div.appendChild(meta);
+        }
+    }
+    wrap.appendChild(div);
+    wrap.scrollTop = wrap.scrollHeight;
+    return div;
+}
+
+function addTyping() {
+    const div = document.createElement('div');
+    div.className = 'bubble bubble-ai';
+    div.id = 'typingBubble';
+    div.innerHTML = '<span class="spinner-border spinner-border-sm text-primary me-2"></span>Claude is thinking…';
+    wrap.appendChild(div);
+    wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() {
+    const t = document.getElementById('typingBubble');
+    if (t) t.remove();
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const btn   = document.getElementById('sendBtn');
+    const q = input.value.trim();
+    if (!q) return;
+
+    input.value = '';
+    input.disabled = true;
+    btn.disabled   = true;
+    addBubble(q, true);
+    addTyping();
+
+    try {
+        const r = await fetch('/api/chat', {
+            method:  'POST',
+            headers: {'Content-Type': 'application/json'},
+            body:    JSON.stringify({question: q})
+        });
+        const d = await r.json();
+        removeTyping();
+
+        if (d.error) {
+            addBubble(`<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>${d.error}</span>`, false);
+        } else {
+            addBubble(d.answer, false, d.service, d.endpoint);
+            updateDebug(d);
+        }
+    } catch (e) {
+        removeTyping();
+        addBubble('<span class="text-danger">Network error — is the Flask server running on port 5000?</span>', false);
+    }
+
+    input.disabled = false;
+    btn.disabled   = false;
+    input.focus();
+}
+
+function updateDebug(d) {
+    const p = document.getElementById('debugPanel');
+    p.innerHTML = `
+      <div class="mb-1"><strong style="color:#58a6ff">Intent:</strong> ${d.intent || '—'}</div>
+      <div class="mb-1"><strong style="color:#58a6ff">Service:</strong> <span class="mono">${d.service || '—'}</span></div>
+      <div class="mb-1"><strong style="color:#58a6ff">Endpoint:</strong> <span class="mono">${d.endpoint || '—'}</span></div>
+      ${d.api_payload ? `<div class="mb-1"><strong style="color:#58a6ff">Payload:</strong><pre class="code-block mt-1">${JSON.stringify(d.api_payload, null, 2)}</pre></div>` : ''}
+      ${d.raw_json ? `<div><strong style="color:#58a6ff">Raw JSON:</strong><pre class="code-block mt-1">${JSON.stringify(d.raw_json, null, 2).substring(0, 1200)}${JSON.stringify(d.raw_json).length > 1200 ? '\n…truncated' : ''}</pre></div>` : ''}
+    `;
+}
+
+function clearChat() {
+    const bubbles = wrap.querySelectorAll('.bubble');
+    bubbles.forEach(b => b.remove());
+    document.getElementById('debugPanel').innerHTML = 'Send a message to see the API call details here.';
+}
+</script>
+{% endblock %}

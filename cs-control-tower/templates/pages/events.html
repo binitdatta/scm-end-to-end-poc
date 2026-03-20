@@ -1,0 +1,178 @@
+{% extends "partials/base.html" %}
+{% set active_page = "events" %}
+{% block title %}Event Feed{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h4><i class="bi bi-broadcast me-2 text-primary"></i>RabbitMQ Event Feed</h4>
+    <p>Every domain event received from the <span class="mono">erp.topic.exchange</span> via the <span class="mono">erp.#</span> wildcard subscription.</p>
+  </div>
+  <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+  </button>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Total Events</div>
+      <div class="stat-value">{{ stats.total_events or 0 }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Services Emitting</div>
+      <div class="stat-value text-info">{{ stats.by_service | length }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Last Event At</div>
+      <div style="font-size:1rem;font-weight:600;color:#58a6ff;margin-top:.3rem">
+        {{ stats.last_event_at[:16] if stats.last_event_at else '—' }}
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Exchange</div>
+      <div class="mono" style="font-size:.82rem;color:#3fb950;margin-top:.5rem">erp.topic.exchange</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Event log table -->
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul me-2"></i>Event Log <span class="badge bg-secondary ms-1">{{ events | length }}</span></span>
+        <div class="input-group" style="max-width:200px">
+          <input class="form-control form-control-sm" id="filterInput" placeholder="Filter…" oninput="filterEvents()"/>
+        </div>
+      </div>
+      <div class="card-body p-0" style="max-height:600px;overflow-y:auto">
+        {% if events %}
+        <table class="table table-hover mb-0" id="eventTable">
+          <thead style="position:sticky;top:0;z-index:1">
+            <tr>
+              <th style="width:40px">#</th>
+              <th>Routing Key</th>
+              <th style="width:90px">Service</th>
+              <th style="width:110px">Campaign</th>
+              <th style="width:135px">Received At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in events %}
+            <tr class="event-row" data-key="{{ e.routing_key }}" data-svc="{{ e.service }}">
+              <td class="text-dim">{{ e.id }}</td>
+              <td>
+                <span class="mono" style="font-size:.75rem;color:
+                  {% if 'pod-confirmed' in e.routing_key %}#3fb950
+                  {% elif 'dispatched' in e.routing_key %}#bc8cff
+                  {% elif 'allocated' in e.routing_key %}#3fb950
+                  {% elif 'launched' in e.routing_key %}#58a6ff
+                  {% else %}#79c0ff{% endif %}">
+                  {{ e.routing_key }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" style="font-size:.65rem;background:#1a2e4a;color:#58a6ff">
+                  {{ e.service }}
+                </span>
+              </td>
+              <td class="text-dim">{{ e.campaign_code or '—' }}</td>
+              <td class="text-dim">{{ e.received_at[:16] if e.received_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty">
+          <i class="bi bi-broadcast"></i>
+          <div>No events received yet.</div>
+          <p class="mt-2" style="font-size:.8rem">
+            Events arrive when the Spring Boot services publish to RabbitMQ.<br>
+            Make sure RabbitMQ is running and at least one service is active.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats by service + setup guide -->
+  <div class="col-12 col-lg-4">
+    <!-- By service -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Events by Service</div>
+      <div class="card-body p-0">
+        {% if stats.by_service %}
+        {% set total = stats.total_events or 1 %}
+        {% for svc, cnt in stats.by_service.items() %}
+        <div class="px-3 py-2" style="border-bottom:1px solid #21262d">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="mono" style="font-size:.78rem">{{ svc }}</span>
+            <span class="badge bg-primary">{{ cnt }}</span>
+          </div>
+          <div class="progress" style="height:4px;background:#21262d;border-radius:2px">
+            <div class="progress-bar" style="width:{{ (cnt / total * 100) | round | int }}%;background:#58a6ff;border-radius:2px"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty" style="padding:1.5rem">
+          <i class="bi bi-pie-chart"></i>
+          <div style="font-size:.8rem">No events yet</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- RabbitMQ event dictionary -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-book me-2"></i>Event Dictionary</div>
+      <div class="card-body p-0" style="max-height:340px;overflow-y:auto">
+        {% set event_dict = [
+          ('erp.crm.campaign.launched','Campaign goes live. Triggers RFQ creation.',True),
+          ('erp.crm.campaign.paused','Campaign paused by manager.',False),
+          ('erp.crm.campaign.completed','Campaign ended.',False),
+          ('erp.vendor.rfq.awarded','Vendor contract awarded. Triggers PO creation.',True),
+          ('erp.procurement.po.ready-to-ship','PO in READY_TO_SHIP. Triggers ASN creation.',True),
+          ('erp.wms.inbound.putaway.completed','Toys on shelves. Triggers OMS inventory update.',True),
+          ('erp.oms.store-order.allocated','Orders allocated to stores. Triggers pick wave.',True),
+          ('erp.wms.outbound.shipment.dispatched','Truck departed DC. Triggers TMS load creation.',True),
+          ('erp.tms.load.in-transit','Carrier en route.',False),
+          ('erp.tms.delivery.out-for-delivery','Driver on delivery route.',False),
+          ('erp.tms.load.completed','All stores delivered.',False),
+          ('erp.tms.delivery.pod-confirmed','FINAL EVENT. All stores signed. Toys in restaurants.',True),
+        ] %}
+        {% for key, desc, key_event in event_dict %}
+        <div class="px-3 py-2" style="border-bottom:1px solid #21262d">
+          <div class="d-flex align-items-center gap-1 mb-1">
+            {% if key_event %}<i class="bi bi-star-fill text-warning" style="font-size:.6rem"></i>{% endif %}
+            <span class="mono" style="font-size:.7rem;color:#79c0ff">{{ key }}</span>
+          </div>
+          <div class="text-dim" style="font-size:.72rem">{{ desc }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterEvents() {
+    const q = document.getElementById('filterInput').value.toLowerCase();
+    document.querySelectorAll('.event-row').forEach(row => {
+        const match = row.dataset.key.includes(q) || row.dataset.svc.includes(q);
+        row.style.display = match ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+# =============================================================================
+# cs-control-tower .gitignore
+# IMPORTANT: .env contains your ANTHROPIC_API_KEY — never commit it
+# =============================================================================
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+.DS_Store
+
+# Flask / runtime
+instance/
+*.db
+*.sqlite3
+flask_session/
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

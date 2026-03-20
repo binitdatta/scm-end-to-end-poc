@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header">
+    <h4><i class="bi bi-megaphone me-2 text-primary"></i>CRM — Campaign Management</h4>
+    <p>Manage toy surprise campaigns. Launch a campaign to trigger the full supply chain. Port 8081</p>
+</div>
+
+<div class="row g-4">
+    <!-- ── Campaigns table ─────────────────────────────────────── -->
+    <div class="col-12 col-xl-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-collection"></i>Campaigns</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadCampaigns()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <div id="campaignsTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Create campaign form ────────────────────────────────── -->
+    <div class="col-12 col-xl-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-plus-circle"></i>Create Campaign</div>
+            <div class="card-body">
+                <form id="createCampaignForm" onsubmit="createCampaign(event)">
+                    <div class="mb-2">
+                        <label class="form-label">Campaign Code *</label>
+                        <input class="form-control" id="cc_code" placeholder="SUMMER25-TOY" required/>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Campaign Name *</label>
+                        <input class="form-control" id="cc_name" placeholder="Summer 2025 Toy Surprise" required/>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Description</label>
+                        <input class="form-control" id="cc_desc" placeholder="Kids meal toy campaign"/>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col">
+                            <label class="form-label">Start Date *</label>
+                            <input type="date" class="form-control" id="cc_start" required/>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">End Date *</label>
+                            <input type="date" class="form-control" id="cc_end" required/>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target Stores</label>
+                        <input type="number" class="form-control" id="cc_stores" placeholder="3200"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle me-1"></i>Create Campaign
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Launch campaign -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-play-circle"></i>Launch Campaign</div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <label class="form-label">Campaign External ID</label>
+                    <input class="form-control" id="launch_id" placeholder="camp-001-uuid"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <input class="form-control" id="launch_notes" placeholder="Campaign go-live"/>
+                </div>
+                <button class="btn btn-primary w-100" onclick="launchCampaign()">
+                    <i class="bi bi-rocket me-1"></i>Launch → erp.crm.campaign.launched
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Campaign Events ─────────────────────────────────────── -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-clock-history"></i>Campaign Events (enter externalId below)</div>
+            <div class="card-body pb-2">
+                <div class="input-group mb-3" style="max-width:400px">
+                    <input class="form-control" id="eventsId" placeholder="Campaign externalId"/>
+                    <button class="btn btn-outline-secondary" onclick="loadCampaignEvents()">Load Events</button>
+                </div>
+                <div class="table-responsive">
+                    <div id="eventsTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', loadCampaigns);
+
+function renderCampaigns(data) {
+    if (!data.length) return emptyState('megaphone', 'No campaigns found');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>Code</th><th>Name</th><th>Status</th><th>Stores</th><th>Start</th><th>End</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(c=>`<tr>
+        <td>${mono(c.campaignCode)}</td>
+        <td>${c.campaignName||c.name||'—'}</td>
+        <td>${statusBadge(c.status)}</td>
+        <td>${fmtNum(c.targetStoreCount)}</td>
+        <td>${fmtDate(c.startDate)}</td>
+        <td>${fmtDate(c.endDate)}</td>
+        <td>
+            <button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('launch_id').value='${c.externalId}'">
+                <i class="bi bi-arrow-right-circle"></i> Select
+            </button>
+        </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadCampaigns() {
+    await loadTable('crm', '/api/v1/campaigns', 'campaignsTable', renderCampaigns);
+}
+
+async function createCampaign(e) {
+    e.preventDefault();
+    const body = {
+        campaignCode: document.getElementById('cc_code').value,
+        campaignName: document.getElementById('cc_name').value,
+        description:  document.getElementById('cc_desc').value,
+        startDate:    document.getElementById('cc_start').value,
+        endDate:      document.getElementById('cc_end').value,
+        targetStoreCount: parseInt(document.getElementById('cc_stores').value) || 3200,
+        createdBy: 'crm.manager'
+    };
+    const res = await apiPost('crm', '/api/v1/campaigns', body);
+    showResponse('Create Campaign Response', res);
+    if (res?.success) { showToast('Campaign created!'); clearForm('createCampaignForm'); loadCampaigns(); }
+    else showToast(res?.message||'Error', true);
+}
+
+async function launchCampaign() {
+    const id = document.getElementById('launch_id').value.trim();
+    if (!id) { showToast('Enter a campaign externalId', true); return; }
+    const res = await apiPost('crm', `/api/v1/campaigns/${id}/launch`, {
+        triggeredBy: 'crm.manager',
+        notes: document.getElementById('launch_notes').value || 'Campaign launched'
+    });
+    showResponse('Launch Campaign Response', res);
+    if (res?.success) { showToast('Campaign launched! RabbitMQ: erp.crm.campaign.launched'); loadCampaigns(); }
+    else showToast(res?.message||'Error', true);
+}
+
+async function loadCampaignEvents() {
+    const id = document.getElementById('eventsId').value.trim();
+    if (!id) { showToast('Enter campaign externalId', true); return; }
+    const res = await apiGet('crm', `/api/v1/campaigns/${id}/events`);
+    const data = res?.data ?? [];
+    if (!data.length) { document.getElementById('eventsTable').innerHTML = emptyState('clock', 'No events'); return; }
+    document.getElementById('eventsTable').innerHTML = `<table class="table mb-0"><thead><tr>
+        <th>Type</th><th>Previous</th><th>New Status</th><th>Notes</th><th>By</th><th>RabbitMQ</th><th>At</th>
+    </tr></thead><tbody>${data.map(e=>`<tr>
+        <td>${mono(e.eventType)}</td>
+        <td>${statusBadge(e.previousStatus)}</td>
+        <td>${statusBadge(e.newStatus)}</td>
+        <td class="text-muted-sm">${e.notes||'—'}</td>
+        <td class="text-muted-sm">${e.triggeredBy||'—'}</td>
+        <td>${e.rabbitmqPublished?'<span class="badge bg-success">✓</span>':'<span class="badge bg-secondary">—</span>'}</td>
+        <td class="text-muted-sm">${fmtDt(e.eventAt)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+</script>
+</body>
+</html>

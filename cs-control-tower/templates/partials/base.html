@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{% block title %}Control Tower{% endblock %} — Burger Bliss ERP AI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <style>
+        body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+        .navbar{background:#161b22!important;border-bottom:1px solid #30363d}
+        .navbar-brand{font-weight:700;font-size:1.05rem;color:#58a6ff!important;letter-spacing:.02em}
+        .nav-link{color:#8b949e!important;font-size:.85rem;padding:.45rem .8rem!important;border-radius:6px;transition:all .15s}
+        .nav-link:hover,.nav-link.active{color:#e6edf3!important;background:#21262d}
+        .nav-link .badge{font-size:.6rem;vertical-align:middle}
+        .card{background:#161b22;border:1px solid #30363d;border-radius:8px}
+        .card-header{background:#1c2128;border-bottom:1px solid #30363d;font-weight:600;font-size:.875rem;padding:.75rem 1rem}
+        .table{color:#e6edf3;font-size:.8rem;margin-bottom:0}
+        .table thead th{background:#1c2128;color:#8b949e;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;border-color:#30363d;padding:.6rem .75rem}
+        .table tbody tr{border-color:#21262d}
+        .table tbody tr:hover{background:#1c2128}
+        .table td,.table th{vertical-align:middle;padding:.55rem .75rem}
+        .form-control,.form-select,.form-control:disabled{background:#0d1117;border:1px solid #30363d;color:#e6edf3;font-size:.84rem}
+        .form-control:focus,.form-select:focus{background:#0d1117;border-color:#58a6ff;color:#e6edf3;box-shadow:0 0 0 .2rem rgba(88,166,255,.2)}
+        .form-label{font-size:.78rem;color:#8b949e;font-weight:500;margin-bottom:.3rem}
+        .btn-primary{background:#238636;border-color:#2ea043}
+        .btn-primary:hover{background:#2ea043;border-color:#3fb950}
+        .btn-outline-secondary{border-color:#30363d;color:#8b949e;font-size:.82rem}
+        .btn-outline-secondary:hover{background:#21262d;color:#e6edf3;border-color:#58a6ff}
+        /* Badges */
+        .badge-status{font-size:.68rem;padding:.3em .55em;border-radius:4px;font-weight:600}
+        .s-up{background:#1a4a1a;color:#3fb950}.s-down{background:#3a1a1a;color:#f85149}
+        .s-completed,.s-pod_confirmed,.s-delivered,.s-allocated,.s-dispatched,.s-putaway_completed,.s-active,.s-awarded{background:#1a4a1a;color:#3fb950}
+        .s-created,.s-draft,.s-pending,.s-scheduled{background:#1f2937;color:#8b949e}
+        .s-in_transit,.s-assigned,.s-submitted,.s-picking,.s-open{background:#1a2e4a;color:#58a6ff}
+        .s-cancelled,.s-failed{background:#3a1a1a;color:#f85149}
+        .s-packed,.s-manifested,.s-arrived,.s-received{background:#2d1f3d;color:#bc8cff}
+        /* Stats */
+        .stat-card{border:1px solid #30363d;border-radius:8px;background:#161b22;padding:1.1rem 1.25rem}
+        .stat-value{font-size:1.8rem;font-weight:700;color:#58a6ff;line-height:1}
+        .stat-label{font-size:.72rem;color:#8b949e;margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em}
+        /* Page chrome */
+        .page-header{border-bottom:1px solid #30363d;padding-bottom:1rem;margin-bottom:1.5rem}
+        .page-header h4{font-weight:700;margin:0}
+        .page-header p{color:#8b949e;font-size:.85rem;margin:.3rem 0 0}
+        .section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#8b949e;margin-bottom:.75rem}
+        hr.div{border-color:#30363d;margin:1.5rem 0}
+        .mono{font-family:'SFMono-Regular',Consolas,monospace;font-size:.78rem;color:#79c0ff}
+        .text-dim{color:#8b949e!important;font-size:.78rem}
+        /* Scrollbar */
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-track{background:#0d1117}
+        ::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+        /* Toast */
+        .toast-container{position:fixed;top:1rem;right:1rem;z-index:9999}
+        .toast{background:#1c2128;border:1px solid #30363d;color:#e6edf3}
+        /* Pulse dot */
+        .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3fb950;animation:pulse 1.8s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        /* Chat bubbles */
+        .chat-wrap{height:480px;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+        .bubble{max-width:88%;padding:.75rem 1rem;border-radius:12px;font-size:.85rem;line-height:1.55}
+        .bubble-user{background:#1a2e4a;color:#c9d1d9;align-self:flex-end;border-bottom-right-radius:3px}
+        .bubble-ai{background:#1c2128;border:1px solid #30363d;color:#e6edf3;align-self:flex-start;border-bottom-left-radius:3px}
+        .bubble-meta{font-size:.7rem;color:#8b949e;margin-top:.3rem}
+        .bubble-service{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:.4rem .75rem;font-size:.72rem;margin-top:.5rem;color:#8b949e}
+        /* Timeline */
+        .timeline-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:.5rem;flex-shrink:0;margin-top:.35rem}
+        .flow-arrow{color:#58a6ff;font-size:1.2rem;margin:0 .5rem}
+        /* Code block */
+        pre.code-block{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:1rem;font-size:.76rem;color:#3fb950;overflow-x:auto;max-height:320px}
+        /* Empty state */
+        .empty{text-align:center;padding:3rem 1rem;color:#8b949e}
+        .empty i{font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.35}
+        /* Spinner */
+        #spinner-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center}
+        #spinner-overlay.on{display:flex}
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Spinner -->
+<div id="spinner-overlay"><div class="spinner-border text-primary"></div></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastWrap"></div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="/">
+        <i class="bi bi-cpu me-1"></i>Control Tower
+        <span class="badge bg-secondary ms-1" style="font-size:.55rem;vertical-align:middle">AI</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav me-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='home' %}active{% endif %}" href="/">
+            <i class="bi bi-grid-3x3-gap"></i> Overview
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='architecture' %}active{% endif %}" href="/architecture">
+            <i class="bi bi-diagram-3"></i> Architecture
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='explorer' %}active{% endif %}" href="/explorer">
+            <i class="bi bi-search"></i> Explorer
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='chat' %}active{% endif %}" href="/chat">
+            <i class="bi bi-chat-dots"></i> AI Chat
+            <span class="badge bg-success" style="font-size:.6rem">Claude</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='events' %}active{% endif %}" href="/events">
+            <i class="bi bi-broadcast"></i> Events
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page=='bi' %}active{% endif %}" href="/bi">
+            <i class="bi bi-bar-chart-line"></i> BI Dashboard
+          </a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-dim"><span class="pulse me-1"></span>SUMMER25-TOY</span>
+        <a href="http://localhost:8090" target="_blank" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-grid me-1"></i>ERP Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main class="container-fluid px-4 py-4">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-dim py-3" style="border-top:1px solid #30363d;font-size:.73rem">
+    Burger Bliss ERP · Control Tower · Claude AI · Python 3.12 + Flask · Port 5000
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function spin(on){document.getElementById('spinner-overlay').classList.toggle('on',on)}
+function toast(msg,ok=true){
+    const d=document.createElement('div');
+    d.className=`toast align-items-center show border-0`;
+    d.style.borderLeft=`3px solid ${ok?'#3fb950':'#f85149'}`;
+    d.innerHTML=`<div class="d-flex"><div class="toast-body" style="font-size:.83rem">${msg}</div>
+    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    document.getElementById('toastWrap').appendChild(d);
+    setTimeout(()=>d.remove(),5000);
+}
+function sbadge(s){
+    if(!s)return'<span class="text-dim">—</span>';
+    const c='s-'+s.toLowerCase().replace(/[_\s]/g,'-');
+    return `<span class="badge badge-status ${c}">${s}</span>`;
+}
+function mono(v){return v?`<span class="mono">${v}</span>`:'<span class="text-dim">—</span>';}
+function fmt(n){return n!=null?Number(n).toLocaleString():'—';}
+function fdate(d){return d?d.substring(0,10):'—';}
+function fdt(d){return d?d.replace('T',' ').substring(0,16):'—';}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

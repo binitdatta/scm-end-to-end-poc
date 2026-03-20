@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header">
+    <h4><i class="bi bi-box-arrow-up-right me-2 text-primary"></i>WMS Outbound — Pick, Pack & Dispatch</h4>
+    <p>Manage pick waves and outbound shipments to restaurant stores. Port 8086</p>
+</div>
+
+<div class="row g-4">
+    <!-- Pick waves -->
+    <div class="col-12 col-xl-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-check"></i>Pick Waves</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadWaves()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive"><div id="wavesTable"></div></div>
+            </div>
+        </div>
+
+        <!-- Shipments -->
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-box-seam"></i>Outbound Shipments</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadShipments()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive"><div id="shipmentsTable"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-12 col-xl-5">
+        <!-- Create pick wave -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-plus-circle"></i>Create Pick Wave</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">Wave Number *</label>
+                    <input class="form-control" id="wv_num" placeholder="WV-2025-003"/></div>
+                <div class="mb-2"><label class="form-label">Store Order External ID *</label>
+                    <input class="form-control" id="wv_ord" placeholder="ord-001-uuid"/></div>
+                <div class="mb-2"><label class="form-label">Store Order Number</label>
+                    <input class="form-control" id="wv_ord_num" placeholder="ORD-2025-001"/></div>
+                <div class="mb-2"><label class="form-label">Region Code</label>
+                    <input class="form-control" id="wv_region" placeholder="US-MIDWEST"/></div>
+                <div class="mb-2"><label class="form-label">SKU</label>
+                    <input class="form-control" id="wv_sku" value="TOY-DINO-MIX-001"/></div>
+                <div class="mb-2"><label class="form-label">Total Quantity</label>
+                    <input type="number" class="form-control" id="wv_qty" placeholder="128000"/></div>
+                <div class="mb-3"><label class="form-label">Required Ship Date</label>
+                    <input type="date" class="form-control" id="wv_ship_date"/></div>
+                <button class="btn btn-primary w-100" onclick="createWave()">
+                    <i class="bi bi-plus-circle me-1"></i>Create Pick Wave
+                </button>
+            </div>
+        </div>
+
+        <!-- Wave lifecycle -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-play-circle"></i>Wave Lifecycle</div>
+            <div class="card-body">
+                <div class="mb-3"><label class="form-label">Wave External ID</label>
+                    <input class="form-control" id="wv_action_id" placeholder="Wave externalId"/></div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="waveAction('assign',{assignedTo:'picker.team.01'})">
+                        <i class="bi bi-person-check me-1"></i>Assign Team
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="waveAction('start',{triggeredBy:'picker.team.01'})">
+                        <i class="bi bi-play me-1"></i>Start Picking
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="completeWave()">
+                        <i class="bi bi-check-circle me-1"></i>Complete Wave → create shipment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipment lifecycle -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-truck"></i>Shipment Lifecycle</div>
+            <div class="card-body">
+                <div class="mb-3"><label class="form-label">Shipment External ID</label>
+                    <input class="form-control" id="shp_action_id" placeholder="Shipment externalId"/></div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="shipmentAction('pack',{triggeredBy:'wms.outbound.packer'})">
+                        <i class="bi bi-box me-1"></i>Pack Shipment
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="manifestShipment()">
+                        <i class="bi bi-file-text me-1"></i>Manifest (assign carrier)
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="shipmentAction('dispatch',{triggeredBy:'wms.outbound.coordinator'})">
+                        <i class="bi bi-truck me-1"></i>Dispatch → erp.wms.outbound.shipment.dispatched
+                    </button>
+                </div>
+                <hr class="section-divider"/>
+                <div class="mb-2"><label class="form-label">Carrier Name (for manifest)</label>
+                    <input class="form-control" id="shp_carrier" placeholder="XPO Logistics"/></div>
+                <div class="mb-2"><label class="form-label">PRO Number (for manifest)</label>
+                    <input class="form-control" id="shp_pro" placeholder="XPO-2025-MW-0441"/></div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded',()=>{ loadWaves(); loadShipments(); });
+
+function renderWaves(data) {
+    if(!data.length) return emptyState('list-check','No pick waves');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>Wave #</th><th>Order #</th><th>Region</th><th>SKU</th><th>Total</th><th>Picked</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(w=>`<tr>
+        <td>${mono(w.waveNumber)}</td>
+        <td class="text-muted-sm">${w.storeOrderNumber||'—'}</td>
+        <td class="text-muted-sm">${w.regionCode||'—'}</td>
+        <td>${mono(w.sku||'—')}</td>
+        <td>${fmtNum(w.totalQuantity)}</td>
+        <td>${fmtNum(w.pickedQuantity)}</td>
+        <td>${statusBadge(w.status)}</td>
+        <td><button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('wv_action_id').value='${w.externalId}'">
+            <i class="bi bi-arrow-right-circle"></i>
+        </button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function renderShipments(data) {
+    if(!data.length) return emptyState('box-seam','No shipments');
+    return `<table class="table table-hover mb-0"><thead><tr>
+        <th>Shipment #</th><th>Wave #</th><th>Region</th><th>Cartons</th><th>Units</th><th>Carrier</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${data.map(s=>`<tr>
+        <td>${mono(s.shipmentNumber)}</td>
+        <td class="text-muted-sm">${s.waveNumber||'—'}</td>
+        <td class="text-muted-sm">${s.regionCode||'—'}</td>
+        <td>${fmtNum(s.totalCartons)}</td>
+        <td>${fmtNum(s.totalUnits)}</td>
+        <td class="text-muted-sm">${s.carrierName||'—'}</td>
+        <td>${statusBadge(s.status)}</td>
+        <td><button class="btn btn-action btn-outline-secondary" onclick="document.getElementById('shp_action_id').value='${s.externalId}'">
+            <i class="bi bi-arrow-right-circle"></i>
+        </button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadWaves()     { await loadTable('wms-outbound','/api/v1/pick-waves','wavesTable',renderWaves); }
+async function loadShipments() { await loadTable('wms-outbound','/api/v1/shipments','shipmentsTable',renderShipments); }
+
+async function createWave() {
+    const body = {
+        waveNumber: document.getElementById('wv_num').value,
+        storeOrderExternalId: document.getElementById('wv_ord').value,
+        storeOrderNumber: document.getElementById('wv_ord_num').value,
+        campaignExternalId:'camp-001-uuid',campaignCode:'SUMMER25-TOY',
+        regionCode: document.getElementById('wv_region').value,
+        sku: document.getElementById('wv_sku').value,
+        toyDescription:'Mystery Dinosaur Figures',
+        totalQuantity: parseInt(document.getElementById('wv_qty').value)||128000,
+        pickZone:'ZONE-A',
+        requiredShipDate: document.getElementById('wv_ship_date').value||'2025-05-20',
+        createdBy:'wms.outbound.coordinator',
+        binSources:[{warehouseZone:'ZONE-A',warehouseAisle:'A-01',warehouseBin:'BIN-A-01-001',quantityToPick:64000},
+                    {warehouseZone:'ZONE-A',warehouseAisle:'A-02',warehouseBin:'BIN-A-02-001',quantityToPick:64000}]
+    };
+    const res = await apiPost('wms-outbound','/api/v1/pick-waves',body);
+    showResponse('Create Pick Wave',res);
+    if(res?.success){showToast('Pick wave created!');loadWaves();}else showToast(res?.message||'Error',true);
+}
+
+async function waveAction(action,body) {
+    const id = document.getElementById('wv_action_id').value.trim();
+    if(!id){showToast('Enter wave externalId',true);return;}
+    const res = await apiPost('wms-outbound',`/api/v1/pick-waves/${id}/${action}`,body);
+    showResponse(`Wave ${action}`,res);
+    if(res?.success){showToast(`Wave ${action} done!`);loadWaves();}else showToast(res?.message||'Error',true);
+}
+
+async function completeWave() {
+    const id = document.getElementById('wv_action_id').value.trim();
+    if(!id){showToast('Enter wave externalId',true);return;}
+    const waveRes = await apiGet('wms-outbound',`/api/v1/pick-waves/${id}`);
+    const qty = waveRes?.data?.totalQuantity || 128000;
+    const res = await apiPost('wms-outbound',`/api/v1/pick-waves/${id}/complete`,
+        {triggeredBy:'picker.team.01',pickedQuantity:qty,notes:'All bins picked'});
+    showResponse('Complete Wave',res);
+    if(res?.success){showToast('Wave completed!');loadWaves();}else showToast(res?.message||'Error',true);
+}
+
+async function shipmentAction(action,body) {
+    const id = document.getElementById('shp_action_id').value.trim();
+    if(!id){showToast('Enter shipment externalId',true);return;}
+    const res = await apiPost('wms-outbound',`/api/v1/shipments/${id}/${action}`,body);
+    showResponse(`Shipment ${action}`,res);
+    if(res?.success){
+        if(action==='dispatch') showToast('KEY EVENT: erp.wms.outbound.shipment.dispatched published!');
+        else showToast(`Shipment ${action} done!`);
+        loadShipments();
+    }else showToast(res?.message||'Error',true);
+}
+
+async function manifestShipment() {
+    const id = document.getElementById('shp_action_id').value.trim();
+    const carrier = document.getElementById('shp_carrier').value || 'XPO Logistics';
+    const pro     = document.getElementById('shp_pro').value || 'XPO-2025-MW-0441';
+    if(!id){showToast('Enter shipment externalId',true);return;}
+    const res = await apiPost('wms-outbound',`/api/v1/shipments/${id}/manifest`,{carrierName:carrier,proNumber:pro});
+    showResponse('Manifest Shipment',res);
+    if(res?.success){showToast('Shipment manifested!');loadShipments();}else showToast(res?.message||'Error',true);
+}
+</script>
+</body>
+</html>

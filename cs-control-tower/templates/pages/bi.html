@@ -1,0 +1,244 @@
+{% extends "partials/base.html" %}
+{% set active_page = "bi" %}
+{% block title %}BI Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h4><i class="bi bi-bar-chart-line me-2 text-primary"></i>BI Dashboard</h4>
+    <p>Aggregated business intelligence from the RabbitMQ event stream. Updated in real-time as events arrive.</p>
+  </div>
+  <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+  </button>
+</div>
+
+<!-- Top stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2">
+    <div class="stat-card text-center">
+      <div class="stat-label">Events Captured</div>
+      <div class="stat-value">{{ stats.total_events or 0 }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card text-center">
+      <div class="stat-label">Campaigns Tracked</div>
+      <div class="stat-value text-info">{{ summaries | length }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card text-center">
+      <div class="stat-label">Loads Completed</div>
+      <div class="stat-value text-success">{{ deliveries | length }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card text-center">
+      <div class="stat-label">Total Units Delivered</div>
+      <div class="stat-value text-warning">{{ "{:,}".format(deliveries | sum(attribute='delivered_units')) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card text-center">
+      <div class="stat-label">Stores Reached</div>
+      <div class="stat-value" style="color:#bc8cff">{{ "{:,}".format(deliveries | sum(attribute='stores_count')) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Campaign summaries -->
+  <div class="col-12 col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-megaphone me-2"></i>Campaign Supply Chain Funnel</div>
+      <div class="card-body">
+        {% if summaries %}
+        {% for s in summaries %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-bold" style="color:#58a6ff">{{ s.campaign_code }}</h6>
+            <span class="badge badge-status s-active">{{ s.campaign_status or 'ACTIVE' }}</span>
+          </div>
+
+          {% set funnel = [
+            ('Units Ordered', s.total_units_ordered or 0, '#58a6ff'),
+            ('Units Received', s.total_units_received or 0, '#bc8cff'),
+            ('Units Allocated', s.total_units_allocated or 0, '#3fb950'),
+            ('Units Shipped', s.total_units_shipped or 0, '#f0883e'),
+            ('Units Delivered', s.total_units_delivered or 0, '#3fb950'),
+          ] %}
+          {% set max_val = [s.total_units_ordered or 1, 1] | max %}
+          {% for label, val, color in funnel %}
+          <div class="mb-2">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-dim" style="font-size:.78rem">{{ label }}</span>
+              <span style="font-size:.78rem;font-weight:600;color:{{ color }}">{{ "{:,}".format(val) }}</span>
+            </div>
+            <div class="progress" style="height:8px;background:#21262d;border-radius:4px">
+              <div class="progress-bar" style="width:{{ [[val / max_val * 100, 100] | min, 0] | max | round | int }}%;background:{{ color }};border-radius:4px;transition:width .5s"></div>
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="row g-2 mt-3">
+            {% set counts = [
+              ('POs', s.total_pos or 0, 'bi-file-earmark-text'),
+              ('Orders', s.total_orders or 0, 'bi-cart3'),
+              ('Shipments', s.total_shipments or 0, 'bi-box-seam'),
+              ('Loads', s.total_loads or 0, 'bi-truck'),
+              ('Stores', s.stores_delivered or 0, 'bi-shop'),
+            ] %}
+            {% for label, val, icon in counts %}
+            <div class="col">
+              <div class="text-center p-2 rounded" style="background:#1c2128;border:1px solid #30363d">
+                <i class="bi {{ icon }} text-primary d-block" style="font-size:.9rem"></i>
+                <div style="font-size:1rem;font-weight:700;color:#e6edf3">{{ val }}</div>
+                <div class="text-dim" style="font-size:.65rem">{{ label }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty">
+          <i class="bi bi-bar-chart-line"></i>
+          <div>No campaign data yet.</div>
+          <p class="mt-2" style="font-size:.8rem;max-width:320px;margin:auto">
+            BI data is populated automatically when RabbitMQ events arrive from the Spring Boot services.
+            Start the supply chain from the <a href="http://localhost:8090" target="_blank" class="text-primary">ERP Dashboard</a>.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Delivery tracking table -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-truck me-2"></i>Delivery Tracking (from POD events)</div>
+      <div class="card-body p-0">
+        {% if deliveries %}
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Load #</th>
+                <th>Region</th>
+                <th>Carrier</th>
+                <th>PRO</th>
+                <th>Units</th>
+                <th>Delivered</th>
+                <th>Stores</th>
+                <th>POD At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in deliveries %}
+              <tr>
+                <td>{{ mono(d.load_number) | safe }}</td>
+                <td class="text-dim">{{ d.region_code or '—' }}</td>
+                <td class="text-dim" style="font-size:.75rem">{{ d.carrier_name or '—' }}</td>
+                <td>{{ mono(d.pro_number) | safe }}</td>
+                <td>{{ "{:,}".format(d.total_units or 0) }}</td>
+                <td class="text-success fw-bold">{{ "{:,}".format(d.delivered_units or 0) }}</td>
+                <td><span class="badge bg-success">{{ d.stores_count or 0 }}</span></td>
+                <td class="text-dim">{{ d.pod_confirmed_at[:16] if d.pod_confirmed_at else '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty" style="padding:2rem">
+          <i class="bi bi-truck"></i>
+          <div>No POD events captured yet.</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="col-12 col-lg-5">
+
+    <!-- Event breakdown chart -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Events by Service</div>
+      <div class="card-body">
+        {% if stats.by_service %}
+        {% set total = stats.total_events or 1 %}
+        {% set colors = ['#58a6ff','#3fb950','#bc8cff','#f0883e','#56d364','#d2a8ff','#ffa657'] %}
+        {% for svc, cnt in stats.by_service.items() %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="mono" style="font-size:.78rem">{{ svc }}</span>
+            <span style="font-size:.75rem;color:#8b949e">{{ cnt }} ({{ (cnt / total * 100) | round(1) }}%)</span>
+          </div>
+          <div class="progress" style="height:6px;background:#21262d;border-radius:3px">
+            <div class="progress-bar" style="width:{{ (cnt / total * 100) | round | int }}%;background:{{ colors[loop.index0 % 7] }};border-radius:3px"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty" style="padding:1.5rem"><i class="bi bi-pie-chart"></i><div style="font-size:.8rem">No data yet</div></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Chat history analytics -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-chat-dots me-2"></i>Recent AI Queries</span>
+        <a href="/chat" class="btn btn-sm btn-outline-secondary">Open Chat</a>
+      </div>
+      <div class="card-body p-0" style="max-height:280px;overflow-y:auto">
+        {% set chat_history = [] %}
+        {% set chat_data = namespace(rows=[]) %}
+        {# We'll load via API call for freshness #}
+        <div id="chatHistoryPanel">
+          <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BI architecture explanation -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle me-2"></i>How the BI Layer Works</div>
+      <div class="card-body" style="font-size:.8rem;line-height:1.7;color:#c9d1d9">
+        <p>The Control Tower runs a background thread that subscribes to
+        <span class="mono">erp.#</span> on RabbitMQ. Every event is:</p>
+        <ol style="padding-left:1.2rem">
+          <li>Stored in <span class="mono">erp_events</span> (raw append-only log)</li>
+          <li>Used to update <span class="mono">campaign_summaries</span> (denormalised rollup)</li>
+          <li>On <span class="mono">pod-confirmed</span> events: also updates <span class="mono">delivery_tracking</span></li>
+        </ol>
+        <p class="mb-0">This read-model lets the AI answer analytical questions instantly
+        without hitting the operational MySQL databases.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load recent chat history via API
+async function loadChatHistory() {
+    try {
+        const r = await fetch('/api/events?limit=1'); // just to check connectivity
+        const panel = document.getElementById('chatHistoryPanel');
+        const res = await fetch('/api/bi/summary');
+        // We don't have a dedicated chat history endpoint exposed publicly,
+        // so show a note directing to /chat
+        panel.innerHTML = `<div class="p-3 text-dim" style="font-size:.8rem">
+            <i class="bi bi-chat-dots me-1"></i>
+            Chat interactions are saved to the BI database.<br>
+            <a href="/chat" class="text-primary">→ View full chat history in the Chat page</a>
+        </div>`;
+    } catch(e) {}
+}
+loadChatHistory();
+</script>
+{% endblock %}

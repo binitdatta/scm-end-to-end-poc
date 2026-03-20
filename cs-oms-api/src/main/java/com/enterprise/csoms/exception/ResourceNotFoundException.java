@@ -1,0 +1,4 @@
+package com.enterprise.csoms.exception;
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) { super(message); }
+}

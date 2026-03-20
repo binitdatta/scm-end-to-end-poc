@@ -1,0 +1,192 @@
+{% extends "partials/base.html" %}
+{% set active_page = "explorer" %}
+{% block title %}Explorer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h4><i class="bi bi-search me-2 text-primary"></i>Supply Chain Explorer</h4>
+  <p>Browse live data from all 7 microservices. Click any service to load its data.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  {% set svcs = [
+    ('crm','CRM','bi-megaphone','/api/v1/campaigns','campaigns'),
+    ('vendor','Vendor','bi-building','/api/v1/vendors','vendors'),
+    ('procurement','Procurement','bi-file-earmark-text','/api/v1/purchase-orders','purchase orders'),
+    ('wms-inbound','WMS Inbound','bi-box-arrow-in-down','/api/v1/asns','ASNs'),
+    ('oms','OMS','bi-shop','/api/v1/store-orders','store orders'),
+    ('wms-outbound','WMS Outbound','bi-box-arrow-up-right','/api/v1/shipments','shipments'),
+    ('tms','TMS','bi-truck','/api/v1/delivery-loads','delivery loads'),
+  ] %}
+  {% for svc, label, icon, path, desc in svcs %}
+  <div class="col-6 col-md-4 col-lg-3">
+    <button class="btn w-100 h-100 py-3"
+            style="background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:8px"
+            onclick="loadService('{{ svc }}','{{ path }}','{{ label }}: {{ desc }}')"
+            id="btn-{{ svc }}">
+      <i class="bi {{ icon }} d-block mb-1" style="font-size:1.4rem;color:#58a6ff"></i>
+      <div style="font-size:.82rem;font-weight:600">{{ label }}</div>
+      <div class="text-dim" style="font-size:.72rem">{{ desc }}</div>
+      <div class="mt-2">
+        {{ '<span class="badge bg-success">UP</span>' | safe if health.get(svc) == 'UP' else '<span class="badge bg-danger">DOWN</span>' | safe }}
+      </div>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Quick path shortcuts -->
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-lightning me-2"></i>Quick Paths</div>
+  <div class="card-body">
+    <div class="row g-2">
+      {% set shortcuts = [
+        ('wms-inbound','/api/v1/inventory/campaign/SUMMER25-TOY','Inventory (campaign)'),
+        ('oms','/api/v1/store-orders/status/ALLOCATED','Allocated Orders'),
+        ('oms','/api/v1/regions','Regions'),
+        ('tms','/api/v1/delivery-loads/status/COMPLETED','Completed Loads'),
+        ('tms','/api/v1/delivery-loads/status/IN_TRANSIT','Loads in Transit'),
+        ('wms-outbound','/api/v1/pick-waves','Pick Waves'),
+        ('vendor','/api/v1/rfqs','All RFQs'),
+        ('procurement','/api/v1/purchase-orders','All POs'),
+      ] %}
+      {% for svc, path, label in shortcuts %}
+      <div class="col-auto">
+        <button class="btn btn-sm btn-outline-secondary" onclick="loadService('{{ svc }}','{{ path }}','{{ label }}')">
+          <i class="bi bi-lightning me-1" style="font-size:.65rem"></i>{{ label }}
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Custom path -->
+<div class="card mb-4">
+  <div class="card-header"><i class="bi bi-terminal me-2"></i>Custom API Request</div>
+  <div class="card-body">
+    <div class="input-group" style="max-width:700px">
+      <select class="form-select" style="max-width:150px" id="customSvc">
+        {% for svc, label, icon, path, desc in svcs %}
+        <option value="{{ svc }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input class="form-control mono" id="customPath" value="/api/v1/" placeholder="/api/v1/..."/>
+      <button class="btn btn-primary" onclick="loadCustom()">
+        <i class="bi bi-play me-1"></i>Execute GET
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Results panel -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span id="resultsTitle"><i class="bi bi-table me-2"></i>Results</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="toggleRaw" onclick="toggleView()" style="display:none">
+        <i class="bi bi-code-slash me-1"></i>Raw JSON
+      </button>
+    </div>
+  </div>
+  <div id="resultsPanel" class="card-body">
+    <div class="empty"><i class="bi bi-table"></i><div>Select a service above to load data</div></div>
+  </div>
+  <div id="rawPanel" class="card-body" style="display:none">
+    <pre class="code-block" id="rawJson" style="max-height:500px"></pre>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let lastData = null;
+let showingRaw = false;
+
+async function loadService(svc, path, label) {
+    document.getElementById('resultsTitle').innerHTML = `<i class="bi bi-hourglass-split me-2"></i>Loading ${label}…`;
+    document.getElementById('resultsPanel').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    document.getElementById('rawPanel').style.display = 'none';
+    document.getElementById('toggleRaw').style.display = 'none';
+    showingRaw = false;
+
+    // Highlight active button
+    document.querySelectorAll('[id^="btn-"]').forEach(b => b.style.borderColor = '#30363d');
+    const btn = document.getElementById('btn-' + svc);
+    if (btn) btn.style.borderColor = '#58a6ff';
+
+    try {
+        const r = await fetch(`/api/explorer/${svc}?path=${encodeURIComponent(path)}`);
+        const d = await r.json();
+        lastData = d;
+        document.getElementById('resultsTitle').innerHTML = `<i class="bi bi-table me-2"></i>${label}`;
+        document.getElementById('toggleRaw').style.display = '';
+        renderData(d);
+    } catch(e) {
+        document.getElementById('resultsPanel').innerHTML = `<div class="text-danger p-3"><i class="bi bi-x-circle me-1"></i>Failed to load: ${e}</div>`;
+    }
+}
+
+async function loadCustom() {
+    const svc  = document.getElementById('customSvc').value;
+    const path = document.getElementById('customPath').value.trim();
+    await loadService(svc, path, `${svc} ${path}`);
+}
+
+function renderData(d) {
+    const panel = document.getElementById('resultsPanel');
+    // Find the array of records
+    let rows = null;
+    if (d && d.data) {
+        rows = Array.isArray(d.data) ? d.data : [d.data];
+    } else if (Array.isArray(d)) {
+        rows = d;
+    }
+
+    if (!rows || rows.length === 0) {
+        panel.innerHTML = '<div class="empty"><i class="bi bi-inbox"></i><div>No records found</div></div>';
+        return;
+    }
+
+    // Build table from keys of first object
+    const keys = Object.keys(rows[0]).filter(k => !['storeDeliveries','storeCartons','binAllocations','tmsEvents','transitEvents','lineItems'].includes(k));
+    const thead = keys.map(k => `<th>${k}</th>`).join('');
+    const tbody = rows.map(row =>
+        '<tr>' + keys.map(k => {
+            const v = row[k];
+            if (v === null || v === undefined) return '<td class="text-dim">—</td>';
+            if (typeof v === 'object') return `<td class="text-dim" style="font-size:.72rem">{…}</td>`;
+            const s = String(v);
+            // Status-like fields
+            if (['status','loadStatus'].includes(k)) return `<td>${sbadge(s)}</td>`;
+            // Number-like fields
+            if (typeof v === 'number') return `<td>${Number(v).toLocaleString()}</td>`;
+            // UUID-like
+            if (s.length > 30 && s.includes('-')) return `<td><span class="mono" style="font-size:.7rem">${s.substring(0,12)}…</span></td>`;
+            // Date-like
+            if (s.match(/^\d{4}-\d{2}-\d{2}/)) return `<td class="text-dim">${s.substring(0,16)}</td>`;
+            return `<td style="font-size:.8rem">${s}</td>`;
+        }).join('') + '</tr>'
+    ).join('');
+
+    panel.innerHTML = `
+      <div class="text-dim mb-2" style="font-size:.75rem">${rows.length} record${rows.length !== 1 ? 's' : ''}</div>
+      <div class="table-responsive">
+        <table class="table table-hover"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
+      </div>`;
+
+    // Also populate raw
+    document.getElementById('rawJson').textContent = JSON.stringify(d, null, 2);
+}
+
+function toggleView() {
+    showingRaw = !showingRaw;
+    document.getElementById('resultsPanel').style.display = showingRaw ? 'none' : '';
+    document.getElementById('rawPanel').style.display = showingRaw ? '' : 'none';
+    document.getElementById('toggleRaw').innerHTML = showingRaw
+        ? '<i class="bi bi-table me-1"></i>Table View'
+        : '<i class="bi bi-code-slash me-1"></i>Raw JSON';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "partials/base.html" %}
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="row align-items-center mb-4 py-3"
+     style="background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);border:1px solid #30363d;border-radius:12px;padding:1.5rem 2rem">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center gap-3 mb-2">
+      <span style="font-size:2.2rem">🏰</span>
+      <div>
+        <h3 class="fw-bold mb-0" style="color:#58a6ff">Burger Bliss ERP — Control Tower</h3>
+        <div class="text-dim mt-1">AI-Powered Supply Chain Intelligence · Powered by Anthropic Claude</div>
+      </div>
+    </div>
+    <p style="color:#8b949e;font-size:.9rem;max-width:640px" class="mt-3 mb-0">
+      The Control Tower sits atop a 7-service Spring Boot ERP ecosystem managing
+      the <strong style="color:#e6edf3">SUMMER25-TOY</strong> kids meal campaign for Burger Bliss restaurant chain.
+      Ask questions in plain English — Claude parses your intent, calls the right API, and
+      translates the response back into business language.
+    </p>
+  </div>
+  <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+    <a href="/chat" class="btn btn-primary px-4 py-2 me-2">
+      <i class="bi bi-chat-dots me-1"></i>Ask Claude
+    </a>
+    <a href="/architecture" class="btn btn-outline-secondary px-4 py-2">
+      <i class="bi bi-diagram-3 me-1"></i>Architecture
+    </a>
+  </div>
+</div>
+
+<!-- Service Health -->
+<div class="row g-3 mb-4">
+  {% for svc, status in health.items() %}
+  <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:160px">
+    <div class="stat-card h-100">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi {% if status == 'UP' %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-danger{% endif %} fs-5"></i>
+        <div>
+          <div style="font-size:.78rem;color:#e6edf3;font-weight:600">{{ svc }}</div>
+          <div class="badge badge-status {% if status == 'UP' %}s-up{% else %}s-down{% endif %} mt-1">{{ status }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:160px">
+    <div class="stat-card h-100" style="border-color:#58a6ff40">
+      <div class="stat-label">Services UP</div>
+      <div class="stat-value {% if up_count == total_count %}text-success{% else %}text-warning{% endif %}">
+        {{ up_count }}/{{ total_count }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Supply chain flow -->
+<div class="card mb-4">
+  <div class="card-header"><i class="bi bi-diagram-3 me-2"></i>Supply Chain Flow — SUMMER25-TOY</div>
+  <div class="card-body py-3">
+    <div class="d-flex align-items-start flex-wrap gap-2" style="font-size:.8rem">
+      {% set steps = [
+        ('CRM','8081','/crm','bi-megaphone','Campaign Launch'),
+        ('Vendor','8082','/vendor','bi-building','RFQ & Award'),
+        ('Procurement','8083','/procurement','bi-file-earmark-text','Purchase Orders'),
+        ('WMS Inbound','8084','/wms-inbound','bi-box-arrow-in-down','ASN → Putaway'),
+        ('OMS','8085','/oms','bi-shop','Store Allocation'),
+        ('WMS Outbound','8086','/wms-outbound','bi-box-arrow-up-right','Pick → Dispatch'),
+        ('TMS','8087','/tms','bi-truck','Delivery + POD'),
+      ] %}
+      {% for name, port, href, icon, sub in steps %}
+      <div class="text-center">
+        <a href="http://localhost:8090{{ href }}" target="_blank"
+           class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d;font-size:.78rem">
+          <i class="bi {{ icon }} me-1"></i>{{ name }}
+          <span class="badge bg-dark ms-1" style="font-size:.58rem">{{ port }}</span>
+        </a>
+        <div class="text-dim mt-1" style="font-size:.7rem">{{ sub }}</div>
+      </div>
+      {% if not loop.last %}<span class="flow-arrow mt-1">›</span>{% endif %}
+      {% endfor %}
+      <span class="flow-arrow mt-1">›</span>
+      <div class="text-center">
+        <span class="btn btn-sm" style="background:#1a4a1a;color:#3fb950;border:1px solid #2ea043;font-size:.78rem">
+          <i class="bi bi-cpu me-1"></i>Control Tower <span class="badge bg-success ms-1" style="font-size:.58rem">5000</span>
+        </span>
+        <div class="text-dim mt-1" style="font-size:.7rem">AI Intelligence</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Campaign BI Summary -->
+  <div class="col-12 col-lg-7">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-bar-chart-line me-2"></i>Campaign BI Summary — SUMMER25-TOY</div>
+      <div class="card-body">
+        {% if summary %}
+        <div class="row g-3">
+          {% set metrics = [
+            ('Purchase Orders', summary.total_pos, 'bi-file-earmark-text', 'text-info'),
+            ('Units Ordered', summary.total_units_ordered, 'bi-boxes', 'text-warning'),
+            ('Units Received', summary.total_units_received, 'bi-box-arrow-in-down', 'text-primary'),
+            ('Store Orders', summary.total_orders, 'bi-cart3', 'text-success'),
+            ('Units Allocated', summary.total_units_allocated, 'bi-diagram-3', 'text-success'),
+            ('Shipments', summary.total_shipments, 'bi-box-seam', 'text-info'),
+            ('Units Shipped', summary.total_units_shipped, 'bi-box-arrow-up-right', 'text-primary'),
+            ('Loads Delivered', summary.total_loads, 'bi-truck', 'text-success'),
+            ('Units Delivered', summary.total_units_delivered, 'bi-check2-circle', 'text-success'),
+            ('Stores Reached', summary.stores_delivered, 'bi-shop', 'text-warning'),
+          ] %}
+          {% for label, val, icon, cls in metrics %}
+          <div class="col-6 col-md-4">
+            <div class="stat-card">
+              <i class="bi {{ icon }} {{ cls }} mb-1" style="font-size:1rem"></i>
+              <div class="stat-value" style="font-size:1.35rem">{{ "{:,}".format(val or 0) }}</div>
+              <div class="stat-label">{{ label }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">
+          <i class="bi bi-broadcast"></i>
+          <div>No BI data yet. RabbitMQ events will populate this as the supply chain runs.</div>
+          <a href="/chat" class="btn btn-primary btn-sm mt-3">Ask Claude about the campaign instead</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RabbitMQ event feed + quick chat -->
+  <div class="col-12 col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-broadcast me-2"></i>Live Event Feed</span>
+        <a href="/events" class="btn btn-sm btn-outline-secondary">All Events</a>
+      </div>
+      <div class="card-body p-0" style="max-height:220px;overflow-y:auto">
+        {% set events = stats %}
+        {% if stats.total_events > 0 %}
+        <div class="p-3">
+          <div class="text-dim mb-2">{{ stats.total_events }} events captured</div>
+          {% for svc, cnt in stats.by_service.items() %}
+          <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom:1px solid #21262d">
+            <span class="mono" style="font-size:.78rem">{{ svc }}</span>
+            <span class="badge bg-primary">{{ cnt }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty" style="padding:1.5rem">
+          <i class="bi bi-broadcast"></i>
+          <div style="font-size:.8rem">Waiting for RabbitMQ events...</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-chat-dots me-2"></i>Quick Ask Claude</div>
+      <div class="card-body">
+        <div id="quickAnswer" class="p-2 mb-2 rounded text-dim" style="font-size:.83rem;min-height:48px;background:#0d1117;border:1px solid #21262d">
+          Type a question below…
+        </div>
+        <div class="input-group">
+          <input class="form-control" id="quickQ" placeholder="How many toys have been delivered?" 
+                 onkeydown="if(event.key==='Enter')quickAsk()"/>
+          <button class="btn btn-primary" onclick="quickAsk()">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+        <a href="/chat" class="text-dim mt-2 d-block" style="font-size:.75rem">→ Full AI Chat interface</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function quickAsk(){
+    const q = document.getElementById('quickQ').value.trim();
+    if(!q) return;
+    const el = document.getElementById('quickAnswer');
+    el.innerHTML = '<div class="spinner-border spinner-border-sm text-primary me-2"></div>Asking Claude...';
+    try {
+        const r = await fetch('/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+        const d = await r.json();
+        el.innerHTML = d.error ? `<span class="text-danger">${d.error}</span>` : d.answer.replace(/\n/g,'<br>');
+        el.style.color = '#e6edf3';
+    } catch(e) {
+        el.innerHTML = '<span class="text-danger">Error contacting AI service.</span>';
+    }
+}
+</script>
+{% endblock %}

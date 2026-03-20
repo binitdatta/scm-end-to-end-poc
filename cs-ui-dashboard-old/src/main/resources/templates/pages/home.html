@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{partials/layout :: layout(~{::content}, ~{::script})}">
+<body>
+<th:block th:fragment="content">
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h4><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Control Centre Overview</h4>
+        <p>Burger Bliss SUMMER25-TOY Campaign — ERP Simulation Dashboard</p>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-success fs-6 px-3 py-2" th:text="${upCount + '/' + totalCount + ' Services UP'}"></span>
+    </div>
+</div>
+
+<!-- Service health grid -->
+<div class="row g-3 mb-4">
+    <div th:each="entry : ${health}" class="col-12 col-sm-6 col-md-4 col-xl-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div th:class="${entry.value == 'UP' ? 'stat-icon text-success' : 'stat-icon text-danger'}">
+                <i th:class="${entry.value == 'UP' ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'}"></i>
+            </div>
+            <div>
+                <div class="stat-label" th:text="${entry.key}"></div>
+                <div th:class="${entry.value == 'UP' ? 'stat-value text-success' : 'stat-value text-danger'}"
+                     style="font-size:1.1rem" th:text="${entry.value}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="section-divider"/>
+
+<!-- Supply chain flow diagram -->
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-diagram-3"></i>Supply Chain Flow — SUMMER25-TOY</div>
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center flex-wrap gap-2" style="font-size:.8rem;">
+            <div class="text-center">
+                <a href="/crm" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-megaphone me-1"></i>CRM
+                </a>
+                <div class="text-muted-sm mt-1">Campaign Launch</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/vendor" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-building me-1"></i>Vendor
+                </a>
+                <div class="text-muted-sm mt-1">RFQ &amp; Award</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/procurement" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-file-earmark-text me-1"></i>Procurement
+                </a>
+                <div class="text-muted-sm mt-1">Purchase Orders</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/wms-inbound" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-box-arrow-in-down me-1"></i>WMS Inbound
+                </a>
+                <div class="text-muted-sm mt-1">ASN → Putaway</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/oms" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-shop me-1"></i>OMS
+                </a>
+                <div class="text-muted-sm mt-1">Store Allocation</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/wms-outbound" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>WMS Outbound
+                </a>
+                <div class="text-muted-sm mt-1">Pick → Dispatch</div>
+            </div>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <div class="text-center">
+                <a href="/tms" class="btn btn-sm" style="background:#1a2e4a;color:#58a6ff;border:1px solid #30363d">
+                    <i class="bi bi-truck me-1"></i>TMS
+                </a>
+                <div class="text-muted-sm mt-1">Delivery + POD</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live stats row -->
+<div class="row g-3" id="liveStatsRow">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Campaigns</div>
+                    <div class="stat-value" id="statCampaigns">—</div>
+                </div>
+                <i class="bi bi-megaphone stat-icon text-primary"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Purchase Orders</div>
+                    <div class="stat-value" id="statPOs">—</div>
+                </div>
+                <i class="bi bi-file-earmark-text stat-icon text-info"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Inventory (units)</div>
+                    <div class="stat-value" id="statInventory">—</div>
+                </div>
+                <i class="bi bi-boxes stat-icon text-warning"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Store Orders</div>
+                    <div class="stat-value" id="statOrders">—</div>
+                </div>
+                <i class="bi bi-shop stat-icon text-success"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Shipments</div>
+                    <div class="stat-value" id="statShipments">—</div>
+                </div>
+                <i class="bi bi-box-seam stat-icon text-purple" style="color:#bc8cff"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Loads Completed</div>
+                    <div class="stat-value" id="statLoads">—</div>
+                </div>
+                <i class="bi bi-truck stat-icon text-success"></i>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const [campaigns, pos, inv, orders, shipments, loads] = await Promise.allSettled([
+            apiGet('crm', '/api/v1/campaigns'),
+            apiGet('procurement', '/api/v1/purchase-orders'),
+            apiGet('wms-inbound', '/api/v1/inventory/campaign/SUMMER25-TOY'),
+            apiGet('oms', '/api/v1/store-orders'),
+            apiGet('wms-outbound', '/api/v1/shipments'),
+            apiGet('tms', '/api/v1/delivery-loads/status/COMPLETED')
+        ]);
+
+        const count = r => { const d = r?.value?.data; return Array.isArray(d) ? d.length : '—'; };
+        document.getElementById('statCampaigns').textContent  = count(campaigns);
+        document.getElementById('statPOs').textContent         = count(pos);
+        document.getElementById('statOrders').textContent      = count(orders);
+        document.getElementById('statShipments').textContent   = count(shipments);
+        document.getElementById('statLoads').textContent       = count(loads);
+
+        // Sum up available inventory
+        const invData = inv?.value?.data;
+        if (Array.isArray(invData)) {
+            const total = invData.reduce((s,i) => s + (i.quantityAvailable||0), 0);
+            document.getElementById('statInventory').textContent = total.toLocaleString();
+        }
+    } catch(e) { console.warn('Stats load partial failure', e); }
+});
+</script>
+</body>
+</html>
