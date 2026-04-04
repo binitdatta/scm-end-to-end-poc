@@ -1,0 +1,42 @@
+# Agent Policy Configuration
+# Adjust these values to tighten or relax human oversight — no code changes needed.
+
+hitl:
+  # Confidence below this threshold → pause for human review
+  confidence_threshold: 0.75
+
+  # Any single action with financial value above this (USD) → pause for approval
+  financial_threshold_usd: 5000
+
+  # Always pause before these action types regardless of confidence
+  always_gate:
+    - vendor_contract_award
+    - po_approval
+    - tms_pod_confirmation
+    - order_cancellation
+
+  # Approval timeout in seconds (0 = wait forever)
+  approval_timeout_seconds: 0
+
+skills:
+  campaign_launcher:    enabled: true
+  vendor_rfq:           enabled: true
+  po_lifecycle:         enabled: true
+  inbound_receiving:    enabled: true
+  order_fulfillment:    enabled: true
+  tms_dispatch:         enabled: true
+  anomaly_detector:     enabled: true
+  nl_query:             enabled: true
+  e2e_orchestration:    enabled: true
+
+rabbitmq:
+  exchange: scm.events
+  exchange_type: topic
+  queues:
+    agent_inbox:      scm.#
+    hitl_alerts:      hitl.#
+    agent_commands:   agent.command.#
+
+logging:
+  level: INFO
+  log_steps_to_db: true

@@ -26,6 +26,11 @@ dist/
 *.egg
 .eggs/
 
+archive/
+cs-agent-control-tower/agent_checkpoints.db
+cs-oms-api/temp
+replacements.txt
+
 # Virtual environments
 .venv/
 venv/
@@ -81,3 +86,6 @@ uploads/
 # - HELP.md / README.md
 # - application.properties / application.yml / application-*.yml
 # -----------------------------------------------------------------------------
+
+cs-agent-control-tower/HELP.md
+cs-agent-control-tower/README.md

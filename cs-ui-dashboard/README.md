@@ -87,3 +87,12 @@ cs-ui-dashboard:8090
 
 All frontend JavaScript calls go through `/api/proxy/{service}/**` which the
 `ApiController` forwards to the correct downstream service using named RestClient beans.
+
+
+``` 
+for port in 8081 8082 8083 8084 8085 8086 8087 8090; do
+  echo -n "Port $port: "
+  curl -s http://localhost:$port/actuator/health \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','UNKNOWN'))"
+done
+```
