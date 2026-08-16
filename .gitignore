@@ -89,3 +89,5 @@ uploads/
 
 cs-agent-control-tower/HELP.md
 cs-agent-control-tower/README.md
+cs-agent-control-tower/audit.db
+cs-agent-control-tower/logs/

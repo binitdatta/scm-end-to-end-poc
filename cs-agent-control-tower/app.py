@@ -16,14 +16,19 @@ from typing import Any
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, Response, jsonify, render_template, request, stream_with_context
+from flask import Flask, Response, jsonify, render_template, request, session, stream_with_context
 from flask_cors import CORS
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from hitl.approval_routes import bp as hitl_bp
 from messaging.consumer import start_consumer, get_recent_events
 from orchestrator.graph import build_graph
 from orchestrator.state import RunStatus
 from api_clients.scm_client import health_check_all
+from observability import context as obs_context
+from observability.audit_routes import bp as audit_bp
+from auth.oidc import init_oauth
+from auth.routes import bp as auth_bp
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -33,11 +38,40 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder="ui/templates", static_folder="ui/static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
-CORS(app)
+CORS(app, supports_credentials=True)
+init_oauth(app)
 app.register_blueprint(hitl_bp)
+app.register_blueprint(audit_bp)
+app.register_blueprint(auth_bp)
 
 _runs: dict[str, dict[str, Any]] = {}
 _runs_lock = threading.Lock()
+
+# Routes reachable without a Keycloak session. "/" and "/audit" self-guard
+# in their own view functions (rendering the public landing page / redirecting
+# instead of a bare 401, since those are full page loads, not fetch calls).
+_PUBLIC_PATHS = {"/", "/login", "/logout", "/auth/callback", "/health", "/metrics", "/audit"}
+_PUBLIC_PREFIXES = ("/static/",)
+
+
+@app.before_request
+def _set_user_context():
+    """Real identity now comes from the Keycloak session once logged in.
+    The X-User-Id header is kept as a dev/API-testing convenience for
+    calling routes directly (curl, Postman) without going through the
+    browser OAuth redirect — it is NOT a security mechanism."""
+    user_id = session.get("user_id") or request.headers.get("X-User-Id", "").strip() or "anonymous"
+    obs_context.current_user_id.set(user_id)
+
+
+@app.before_request
+def _require_login():
+    path = request.path
+    if path in _PUBLIC_PATHS or path.startswith(_PUBLIC_PREFIXES):
+        return None
+    if session.get("user_id"):
+        return None
+    return jsonify({"error": "authentication required", "login_url": "/login"}), 401
 
 
 def _get_run(run_id: str) -> dict | None:
@@ -58,7 +92,13 @@ def _push_log(run_id: str, line: str) -> None:
         entry["log_queue"].put(line)
 
 
-def _run_agent(run_id: str, goal: str) -> None:
+def _run_agent(run_id: str, goal: str, user_id: str) -> None:
+    # ContextVars do NOT propagate into a new thread automatically — this
+    # thread needs its own .set() calls using the values captured on the
+    # Flask request thread before this thread was spawned (see start_run).
+    obs_context.current_user_id.set(user_id)
+    obs_context.current_run_id.set(run_id)
+
     _push_log(run_id, f"[START] Run {run_id} — goal: {goal}")
     _upsert_run(run_id, {"status": "planning", "goal": goal,
                           "plan": [], "steps": [], "context": {},
@@ -107,7 +147,10 @@ def _run_agent(run_id: str, goal: str) -> None:
 
 @app.get("/")
 def index():
-    return render_template("console.html")
+    if session.get("user_id"):
+        return render_template("console.html", user_id=session["user_id"],
+                                user_email=session.get("user_email"))
+    return render_template("landing.html")
 
 
 @app.post("/agent/run")
@@ -117,8 +160,9 @@ def start_run():
     if not goal:
         return jsonify({"error": "goal is required"}), 400
     run_id = str(uuid.uuid4())
+    user_id = obs_context.get_user_id()  # already set by _set_user_context above
     _upsert_run(run_id, {"run_id": run_id, "goal": goal, "status": "pending"})
-    t = threading.Thread(target=_run_agent, args=(run_id, goal),
+    t = threading.Thread(target=_run_agent, args=(run_id, goal, user_id),
                          daemon=True, name=f"agent-{run_id[:8]}")
     t.start()
     return jsonify({"run_id": run_id, "status": "started"}), 202
@@ -179,6 +223,13 @@ def services_health():
 @app.get("/health")
 def health():
     return jsonify({"status": "ok", "service": "cs-agent-control-tower"})
+
+
+@app.get("/metrics")
+def metrics_endpoint():
+    """Prometheus scrape target. See observability/metrics.py for what's
+    exposed here — separate from the /audit page's per-call detail."""
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 def _serialise(state: dict) -> dict:

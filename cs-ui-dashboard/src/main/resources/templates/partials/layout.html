@@ -137,69 +137,52 @@
         <a class="navbar-brand" href="/">
             <i class="bi bi-boxes me-1"></i>Burger Bliss ERP
         </a>
+
+        <!-- LOGOUT always visible — outside collapse -->
+        <form th:action="@{/logout}" method="post" class="m-0 ms-auto me-2 d-flex">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-sm btn-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </form>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav me-auto gap-1">
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='home'?'active':''}" href="/">
-                        <i class="bi bi-grid-3x3-gap"></i> Overview
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='home'?'active':''}" href="/"><i class="bi bi-grid-3x3-gap"></i> Overview</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='crm'?'active':''}" href="/crm">
-                        <i class="bi bi-megaphone"></i> CRM
-                        <span class="badge bg-primary">8081</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='crm'?'active':''}" href="/crm"><i class="bi bi-megaphone"></i> CRM <span class="badge bg-primary">8081</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='vendor'?'active':''}" href="/vendor">
-                        <i class="bi bi-building"></i> Vendor
-                        <span class="badge bg-primary">8082</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='vendor'?'active':''}" href="/vendor"><i class="bi bi-building"></i> Vendor <span class="badge bg-primary">8082</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='procurement'?'active':''}" href="/procurement">
-                        <i class="bi bi-file-earmark-text"></i> Procurement
-                        <span class="badge bg-primary">8083</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='procurement'?'active':''}" href="/procurement"><i class="bi bi-file-earmark-text"></i> Procurement <span class="badge bg-primary">8083</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='wms-inbound'?'active':''}" href="/wms-inbound">
-                        <i class="bi bi-box-arrow-in-down"></i> WMS In
-                        <span class="badge bg-primary">8084</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='wms-inbound'?'active':''}" href="/wms-inbound"><i class="bi bi-box-arrow-in-down"></i> WMS In <span class="badge bg-primary">8084</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='oms'?'active':''}" href="/oms">
-                        <i class="bi bi-shop"></i> OMS
-                        <span class="badge bg-primary">8085</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='oms'?'active':''}" href="/oms"><i class="bi bi-shop"></i> OMS <span class="badge bg-primary">8085</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='wms-outbound'?'active':''}" href="/wms-outbound">
-                        <i class="bi bi-box-arrow-up-right"></i> WMS Out
-                        <span class="badge bg-primary">8086</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='wms-outbound'?'active':''}" href="/wms-outbound"><i class="bi bi-box-arrow-up-right"></i> WMS Out <span class="badge bg-primary">8086</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage=='tms'?'active':''}" href="/tms">
-                        <i class="bi bi-truck"></i> TMS
-                        <span class="badge bg-primary">8087</span>
-                    </a>
+                    <a class="nav-link" th:classappend="${activePage=='tms'?'active':''}" href="/tms"><i class="bi bi-truck"></i> TMS <span class="badge bg-primary">8087</span></a>
                 </li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success" id="navHealthBadge">
-                    <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>Live
-                </span>
-                <span class="text-muted-sm">SUMMER25-TOY</span>
-            </div>
+            <span class="badge bg-success">
+                <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>SUMMER25-TOY
+            </span>
         </div>
     </div>
 </nav>
-
 <!-- Page content -->
 <main class="container-fluid px-4 py-4">
     <th:block th:fragment="content"></th:block>

@@ -1,0 +1,2074 @@
+<!doctype html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+
+    <!-- =========================================================
+         PAGE HERO
+         ========================================================= -->
+    <section class="run-hero">
+
+        <div class="container py-5">
+
+            <div class="row align-items-center g-5">
+
+                <div class="col-lg-8">
+
+                    <div class="eyebrow">
+                        <i class="bi bi-laptop me-2"></i>
+                        Hands-On Setup Guide
+                    </div>
+
+                    <h1 class="mt-2">
+                        Run the Complete SCM Agentic AI POC
+                        on Your Laptop
+                    </h1>
+
+                    <p class="lead mt-3">
+                        This guide walks through the complete local setup of the
+                        End-to-End Supply Chain Agentic AI Proof of Concept on
+                        either macOS or Windows.
+                    </p>
+
+                    <p class="hero-description">
+                        You will install the required development tools, clone the
+                        GitHub repository, create the MySQL schemas and seed data,
+                        build and run seven independent Spring Boot REST APIs,
+                        launch the Spring Boot ERP dashboard, and finally configure
+                        and start the Python / LangGraph Agent Control Tower.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+
+                        <a href="#prerequisites"
+                           class="btn btn-primary btn-lg">
+
+                            <i class="bi bi-play-fill me-2"></i>
+                            Start Setup
+                        </a>
+
+                        <a href="https://github.com/binitdatta/scm-end-to-end-poc"
+                           target="_blank"
+                           rel="noopener"
+                           class="btn btn-outline-primary btn-lg">
+
+                            <i class="bi bi-github me-2"></i>
+                            GitHub Repository
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-lg-4">
+
+                    <div class="run-overview-card">
+
+                        <div class="run-overview-icon">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+
+                        <h3>What You Will Run</h3>
+
+                        <div class="run-overview-item">
+                            <span>7</span>
+                            <p>Spring Boot REST APIs</p>
+                        </div>
+
+                        <div class="run-overview-item">
+                            <span>7</span>
+                            <p>Independent MySQL Schemas</p>
+                        </div>
+
+                        <div class="run-overview-item">
+                            <span>1</span>
+                            <p>Spring Boot ERP Dashboard</p>
+                        </div>
+
+                        <div class="run-overview-item">
+                            <span>1</span>
+                            <p>Python / LangGraph Control Tower</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         ARCHITECTURE SUMMARY
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="section-heading">
+
+            <div class="eyebrow">
+                Local Runtime
+            </div>
+
+            <h2>
+                What Will Be Running on Your Laptop?
+            </h2>
+
+            <p>
+                The POC is intentionally composed of independently running
+                applications rather than one monolithic process.
+            </p>
+
+        </div>
+
+
+        <div class="runtime-flow mt-4">
+
+            <div class="runtime-node runtime-agent">
+
+                <i class="bi bi-robot"></i>
+
+                <strong>
+                    Agent Control Tower
+                </strong>
+
+                <small>
+                    Python · LangGraph · Anthropic
+                </small>
+
+                <span>
+                    localhost:9000
+                </span>
+
+            </div>
+
+
+            <div class="runtime-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
+            <div class="runtime-node runtime-services">
+
+                <i class="bi bi-hdd-network"></i>
+
+                <strong>
+                    Spring Boot APIs
+                </strong>
+
+                <small>
+                    CRM → Vendor → Procurement → WMS → OMS → TMS
+                </small>
+
+                <span>
+                    8081 – 8087
+                </span>
+
+            </div>
+
+
+            <div class="runtime-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
+            <div class="runtime-node runtime-db">
+
+                <i class="bi bi-database-fill"></i>
+
+                <strong>
+                    MySQL 8
+                </strong>
+
+                <small>
+                    Independent schemas
+                </small>
+
+                <span>
+                    localhost:3306
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         PREREQUISITES
+         ========================================================= -->
+
+    <section id="prerequisites"
+             class="run-soft-section py-5">
+
+        <div class="container">
+
+            <div class="section-heading">
+
+                <div class="eyebrow">
+                    Step 01
+                </div>
+
+                <h2>
+                    Install the Prerequisite Software
+                </h2>
+
+                <p>
+                    Install the following development tools before cloning
+                    and building the POC.
+                </p>
+
+            </div>
+
+
+            <div class="prerequisite-grid mt-4">
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">01</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-database-fill"></i>
+                    </div>
+
+                    <h3>
+                        MySQL 8
+                    </h3>
+
+                    <p>
+                        Relational database used by the Spring Boot
+                        business services.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Database Engine
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">02</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-window-stack"></i>
+                    </div>
+
+                    <h3>
+                        MySQL Workbench
+                    </h3>
+
+                    <p>
+                        Used to create schemas and load initial seed data.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Database Administration
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">03</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-code-square"></i>
+                    </div>
+
+                    <h3>
+                        IntelliJ IDEA
+                    </h3>
+
+                    <p>
+                        Recommended IDE for the Java / Spring Boot applications.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Java Development
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">04</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-filetype-py"></i>
+                    </div>
+
+                    <h3>
+                        PyCharm
+                    </h3>
+
+                    <p>
+                        Recommended IDE for the Python Agent Control Tower.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Python Development
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">05</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-git"></i>
+                    </div>
+
+                    <h3>
+                        Git SCM
+                    </h3>
+
+                    <p>
+                        Required to clone and manage the source repository.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Source Control
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">06</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-terminal-fill"></i>
+                    </div>
+
+                    <h3>
+                        iTerm2
+                    </h3>
+
+                    <p>
+                        Recommended terminal environment for macOS.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        macOS Terminal
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">07</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-cup-hot-fill"></i>
+                    </div>
+
+                    <h3>
+                        JDK 21
+                    </h3>
+
+                    <p>
+                        Java runtime and compiler used by the Spring Boot services.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Java Runtime
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">08</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+
+                    <h3>
+                        Apache Maven
+                    </h3>
+
+                    <p>
+                        Builds and packages the Spring Boot applications.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Java Build Tool
+                    </span>
+
+                </div>
+
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">09</div>
+
+                    <div class="prerequisite-icon">
+                        <i class="bi bi-filetype-py"></i>
+                    </div>
+
+                    <h3>
+                        Python 3.12
+                    </h3>
+
+                    <p>
+                        Runtime used by the Agent Control Tower.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Agent Runtime
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         VERIFY TOOLS
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="run-step-header">
+
+            <span>
+                02
+            </span>
+
+            <div>
+
+                <div class="card-kicker">
+                    Verify Your Environment
+                </div>
+
+                <h2>
+                    Confirm the Command-Line Tools
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="command-card mt-4">
+
+            <div class="command-card-header">
+
+                <span>
+                    <i class="bi bi-terminal me-2"></i>
+                    Terminal
+                </span>
+
+            </div>
+
+            <pre><code>java -version
+
+mvn -version
+
+python3 --version
+
+git --version
+
+mysql --version</code></pre>
+
+        </div>
+
+
+        <div class="run-note mt-3">
+
+            <i class="bi bi-info-circle-fill"></i>
+
+            <div>
+
+                <strong>
+                    Windows Python command
+                </strong>
+
+                <p class="mb-0">
+                    Depending on your installation, Windows may use
+                    <code>python</code> instead of <code>python3</code>.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         CLONE REPOSITORY
+         ========================================================= -->
+
+    <section class="run-soft-section py-5">
+
+        <div class="container">
+
+            <div class="run-step-header">
+
+                <span>
+                    03
+                </span>
+
+                <div>
+
+                    <div class="card-kicker">
+                        Source Code
+                    </div>
+
+                    <h2>
+                        Clone the GitHub Repository
+                    </h2>
+
+                    <p>
+                        Clone the combined repository containing the Spring Boot
+                        APIs, ERP dashboard and Python Agent Control Tower.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="command-card mt-4">
+
+                <div class="command-card-header">
+
+                    <span>
+                        <i class="bi bi-github me-2"></i>
+                        Git
+                    </span>
+
+                </div>
+
+                <pre><code>git clone https://github.com/binitdatta/scm-end-to-end-poc.git
+
+cd scm-end-to-end-poc</code></pre>
+
+            </div>
+
+
+            <div class="repository-card mt-4">
+
+                <i class="bi bi-folder2-open"></i>
+
+                <div>
+
+                    <strong>
+                        Repository
+                    </strong>
+
+                    <a href="https://github.com/binitdatta/scm-end-to-end-poc"
+                       target="_blank"
+                       rel="noopener">
+
+                        github.com/binitdatta/scm-end-to-end-poc
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         SPRING SERVICES
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="run-step-header">
+
+            <span>
+                04
+            </span>
+
+            <div>
+
+                <div class="card-kicker">
+                    Spring Boot Backend
+                </div>
+
+                <h2>
+                    Open the Seven Business Services in IntelliJ IDEA
+                </h2>
+
+                <p>
+                    Each service is an independently running Spring Boot
+                    application exposing its own REST API.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="service-table-wrapper mt-4">
+
+            <table class="table service-table align-middle mb-0">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        #
+                    </th>
+
+                    <th>
+                        Application
+                    </th>
+
+                    <th>
+                        Business Domain
+                    </th>
+
+                    <th>
+                        URL
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                <tr>
+
+                    <td>
+                        01
+                    </td>
+
+                    <td>
+                        <code>cs-crm-api</code>
+                    </td>
+
+                    <td>
+                        CRM / Campaign
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8081
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        02
+                    </td>
+
+                    <td>
+                        <code>cs-vendor-api</code>
+                    </td>
+
+                    <td>
+                        Vendor / RFQ
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8082
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        03
+                    </td>
+
+                    <td>
+                        <code>cs-procurement-api</code>
+                    </td>
+
+                    <td>
+                        Procurement / Purchase Orders
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8083
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        04
+                    </td>
+
+                    <td>
+                        <code>cs-wms-inbound-api</code>
+                    </td>
+
+                    <td>
+                        Warehouse Inbound
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8084
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        05
+                    </td>
+
+                    <td>
+                        <code>cs-oms-api</code>
+                    </td>
+
+                    <td>
+                        Order Management
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8085
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        06
+                    </td>
+
+                    <td>
+                        <code>cs-wms-outbound-api</code>
+                    </td>
+
+                    <td>
+                        Warehouse Outbound
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8086
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        07
+                    </td>
+
+                    <td>
+                        <code>cs-tms-api</code>
+                    </td>
+
+                    <td>
+                        Transportation Management
+                    </td>
+
+                    <td>
+                        <span class="port-badge">
+                            localhost:8087
+                        </span>
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="run-note mt-4">
+
+            <i class="bi bi-lightbulb-fill"></i>
+
+            <div>
+
+                <strong>
+                    IntelliJ setup
+                </strong>
+
+                <p class="mb-0">
+                    Open each application directory as a Maven project.
+                    IntelliJ should detect the <code>pom.xml</code> and
+                    configure the project using JDK 21.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         DATABASES
+         ========================================================= -->
+
+    <section class="run-soft-section py-5">
+
+        <div class="container">
+
+            <div class="run-step-header">
+
+                <span>
+                    05
+                </span>
+
+                <div>
+
+                    <div class="card-kicker">
+                        Database Initialization
+                    </div>
+
+                    <h2>
+                        Create the MySQL Schemas and Seed Data
+                    </h2>
+
+                    <p>
+                        The transactional services use independent MySQL
+                        schemas. Create the database structures before
+                        starting the APIs.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="db-flow mt-4">
+
+
+                <div class="db-flow-step">
+
+                    <span>
+                        1
+                    </span>
+
+                    <i class="bi bi-folder2-open"></i>
+
+                    <h3>
+                        Locate the SQL
+                    </h3>
+
+                    <p>
+                        Inside the appropriate project, locate the
+                        <code>db</code> directory under the project root.
+                    </p>
+
+                </div>
+
+
+                <div class="db-flow-arrow">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+
+
+                <div class="db-flow-step">
+
+                    <span>
+                        2
+                    </span>
+
+                    <i class="bi bi-file-earmark-code-fill"></i>
+
+                    <h3>
+                        Open the DDL
+                    </h3>
+
+                    <p>
+                        Identify the schema / DDL
+                        <code>.sql</code> file.
+                    </p>
+
+                </div>
+
+
+                <div class="db-flow-arrow">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+
+
+                <div class="db-flow-step">
+
+                    <span>
+                        3
+                    </span>
+
+                    <i class="bi bi-window-stack"></i>
+
+                    <h3>
+                        Run in Workbench
+                    </h3>
+
+                    <p>
+                        Connect MySQL Workbench to your local
+                        MySQL 8 instance and execute the DDL.
+                    </p>
+
+                </div>
+
+
+                <div class="db-flow-arrow">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+
+
+                <div class="db-flow-step">
+
+                    <span>
+                        4
+                    </span>
+
+                    <i class="bi bi-database-add"></i>
+
+                    <h3>
+                        Load Seed Data
+                    </h3>
+
+                    <p>
+                        Execute the seed data SQL after the schema
+                        has been created successfully.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="run-important mt-4">
+
+                <i class="bi bi-shield-check"></i>
+
+                <div>
+
+                    <strong>
+                        Database-per-service architecture
+                    </strong>
+
+                    <p class="mb-0">
+                        Each backend service owns its schema. Do not consolidate
+                        the schemas into one shared application database simply
+                        for convenience—the separation is intentional and part
+                        of the POC architecture.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         BUILD SPRING APPS
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="run-step-header">
+
+            <span>
+                06
+            </span>
+
+            <div>
+
+                <div class="card-kicker">
+                    Build
+                </div>
+
+                <h2>
+                    Build Each Spring Boot Application
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="command-card mt-4">
+
+            <div class="command-card-header">
+
+                <span>
+                    <i class="bi bi-box-seam me-2"></i>
+                    Maven
+                </span>
+
+            </div>
+
+            <pre><code>mvn clean install</code></pre>
+
+        </div>
+
+
+        <p class="run-explanation mt-3">
+            Maven compiles the application, runs its tests and creates the
+            executable Spring Boot JAR under the project's
+            <code>target</code> directory.
+        </p>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         RUN SPRING APPS
+         ========================================================= -->
+
+    <section class="run-soft-section py-5">
+
+        <div class="container">
+
+            <div class="run-step-header">
+
+                <span>
+                    07
+                </span>
+
+                <div>
+
+                    <div class="card-kicker">
+                        Runtime
+                    </div>
+
+                    <h2>
+                        Start the Spring Boot Services
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="command-card mt-4">
+
+                <div class="command-card-header">
+
+                    <span>
+                        <i class="bi bi-play-circle me-2"></i>
+                        Java
+                    </span>
+
+                </div>
+
+                <pre><code>java -jar target/&lt;file-name&gt;.jar</code></pre>
+
+            </div>
+
+
+            <div class="run-note mt-4">
+
+                <i class="bi bi-terminal-fill"></i>
+
+                <div>
+
+                    <strong>
+                        Multiple applications require multiple terminals
+                    </strong>
+
+                    <p class="mb-0">
+                        Keep each Spring Boot service running in its own terminal
+                        tab/window, or run them directly through separate IntelliJ
+                        run configurations.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         DASHBOARD
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="run-step-header">
+
+            <span>
+                08
+            </span>
+
+            <div>
+
+                <div class="card-kicker">
+                    Human UI
+                </div>
+
+                <h2>
+                    Start the Spring Boot ERP Dashboard
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="special-app-card mt-4">
+
+            <div class="special-app-icon">
+
+                <i class="bi bi-window-stack"></i>
+
+            </div>
+
+            <div class="special-app-main">
+
+                <span class="special-label">
+                    Spring Boot UI
+                </span>
+
+                <h3>
+                    cs-ui-dashboard
+                </h3>
+
+                <p>
+                    This project is the human-facing ERP simulation dashboard.
+                    It does not have its own database.
+                </p>
+
+                <a href="https://github.com/binitdatta/scm-end-to-end-poc/tree/main/cs-ui-dashboard"
+                   target="_blank"
+                   rel="noopener">
+
+                    <i class="bi bi-github me-1"></i>
+                    View Source
+                </a>
+
+            </div>
+
+            <div class="special-app-port">
+
+                <small>
+                    UI
+                </small>
+
+                <strong>
+                    :8090
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="command-card mt-4">
+
+            <div class="command-card-header">
+
+                <span>
+                    Build
+                </span>
+
+            </div>
+
+            <pre><code>cd cs-ui-dashboard
+
+mvn clean install
+
+java -jar target/&lt;file-name&gt;.jar</code></pre>
+
+        </div>
+
+
+        <div class="browser-address mt-3">
+
+            <i class="bi bi-browser-chrome"></i>
+
+            <span>
+                http://localhost:8090
+            </span>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         PYTHON AGENT
+         ========================================================= -->
+
+    <section class="agent-setup-section py-5">
+
+        <div class="container">
+
+            <div class="run-step-header light-header">
+
+                <span>
+                    09
+                </span>
+
+                <div>
+
+                    <div class="card-kicker">
+                        Agentic AI Runtime
+                    </div>
+
+                    <h2>
+                        Configure the Python Agent Control Tower
+                    </h2>
+
+                    <p>
+                        The Agent Control Tower is the Python application that
+                        accepts the human business goal, invokes Anthropic for
+                        planning and uses LangGraph to orchestrate the backend
+                        Spring Boot services.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="special-app-card dark-card mt-4">
+
+                <div class="special-app-icon">
+
+                    <i class="bi bi-robot"></i>
+
+                </div>
+
+                <div class="special-app-main">
+
+                    <span class="special-label">
+                        Python / LangGraph
+                    </span>
+
+                    <h3>
+                        cs-agent-control-tower
+                    </h3>
+
+                    <p>
+                        Open this project in PyCharm using Python 3.12.
+                    </p>
+
+                    <a href="https://github.com/binitdatta/scm-end-to-end-poc/tree/main/cs-agent-control-tower"
+                       target="_blank"
+                       rel="noopener">
+
+                        <i class="bi bi-github me-1"></i>
+                        View Source
+                    </a>
+
+                </div>
+
+                <div class="special-app-port">
+
+                    <small>
+                        Agent UI
+                    </small>
+
+                    <strong>
+                        :9000
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PYTHON VENV -->
+
+            <div class="agent-step mt-5">
+
+                <div class="agent-step-number">
+                    1
+                </div>
+
+                <div>
+
+                    <h3>
+                        Open the Project in PyCharm
+                    </h3>
+
+                    <div class="command-card dark-command mt-3">
+
+                        <pre><code>cd cs-agent-control-tower</code></pre>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VENV -->
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">
+                    2
+                </div>
+
+                <div>
+
+                    <h3>
+                        Create a Python 3.12 Virtual Environment
+                    </h3>
+
+
+                    <ul class="nav nav-pills os-tabs mt-3"
+                        id="venvTabs"
+                        role="tablist">
+
+                        <li class="nav-item"
+                            role="presentation">
+
+                            <button class="nav-link active"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#macVenv"
+                                    type="button">
+
+                                <i class="bi bi-apple me-1"></i>
+                                macOS
+
+                            </button>
+
+                        </li>
+
+
+                        <li class="nav-item"
+                            role="presentation">
+
+                            <button class="nav-link"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#windowsVenv"
+                                    type="button">
+
+                                <i class="bi bi-windows me-1"></i>
+                                Windows
+
+                            </button>
+
+                        </li>
+
+                    </ul>
+
+
+                    <div class="tab-content mt-3">
+
+
+                        <div class="tab-pane fade show active"
+                             id="macVenv">
+
+                            <div class="command-card dark-command">
+
+                                <pre><code>python3.12 -m venv .venv
+
+source .venv/bin/activate</code></pre>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="tab-pane fade"
+                             id="windowsVenv">
+
+                            <div class="command-card dark-command">
+
+                                <pre><code>py -3.12 -m venv .venv
+
+.venv\Scripts\activate</code></pre>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- REQUIREMENTS -->
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">
+                    3
+                </div>
+
+                <div>
+
+                    <h3>
+                        Install the Python Dependencies
+                    </h3>
+
+                    <div class="command-card dark-command mt-3">
+
+                        <pre><code>python -m pip install --upgrade pip
+
+pip install -r requirements.txt</code></pre>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ANTHROPIC KEY -->
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">
+                    4
+                </div>
+
+                <div>
+
+                    <h3>
+                        Create an Anthropic API Key
+                    </h3>
+
+                    <p>
+                        Sign in to the Anthropic Console and create an API key
+                        for the POC.
+                    </p>
+
+                    <div class="security-callout">
+
+                        <i class="bi bi-key-fill"></i>
+
+                        <div>
+
+                            <strong>
+                                Treat the API key as a secret
+                            </strong>
+
+                            <p class="mb-0">
+                                Never commit the API key to GitHub and never
+                                place it directly inside Python source code.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ENV -->
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">
+                    5
+                </div>
+
+                <div>
+
+                    <h3>
+                        Create the Local <code>.env</code> File
+                    </h3>
+
+                    <p>
+                        Copy the example environment file included in the
+                        project.
+                    </p>
+
+
+                    <ul class="nav nav-pills os-tabs mt-3">
+
+                        <li class="nav-item">
+
+                            <button class="nav-link active"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#macEnv">
+
+                                macOS
+
+                            </button>
+
+                        </li>
+
+
+                        <li class="nav-item">
+
+                            <button class="nav-link"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#windowsEnv">
+
+                                Windows
+
+                            </button>
+
+                        </li>
+
+                    </ul>
+
+
+                    <div class="tab-content mt-3">
+
+                        <div class="tab-pane fade show active"
+                             id="macEnv">
+
+                            <div class="command-card dark-command">
+
+                                <pre><code>cp .env.example .env</code></pre>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="tab-pane fade"
+                             id="windowsEnv">
+
+                            <div class="command-card dark-command">
+
+                                <pre><code>copy .env.example .env</code></pre>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <p class="mt-3">
+                        Open <code>.env</code> and add the Anthropic API key
+                        together with any other environment-specific values
+                        documented in the example file.
+                    </p>
+
+
+                    <div class="env-example">
+
+                        <div class="env-example-header">
+
+                            <span>
+                                .env
+                            </span>
+
+                        </div>
+
+                        <pre><code>ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt;</code></pre>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- RUN -->
+
+            <div class="agent-step final-agent-step">
+
+                <div class="agent-step-number">
+                    6
+                </div>
+
+                <div>
+
+                    <h3>
+                        Start the Agent Control Tower
+                    </h3>
+
+                    <div class="command-card dark-command mt-3">
+
+                        <pre><code>python app.py</code></pre>
+
+                    </div>
+
+
+                    <div class="browser-address dark-browser mt-3">
+
+                        <i class="bi bi-browser-chrome"></i>
+
+                        <span>
+                            http://127.0.0.1:9000
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         STARTUP ORDER
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="section-heading">
+
+            <div class="eyebrow">
+                Recommended Startup Sequence
+            </div>
+
+            <h2>
+                Start the Platform Bottom-Up
+            </h2>
+
+            <p>
+                Following this sequence makes troubleshooting much easier.
+            </p>
+
+        </div>
+
+
+        <div class="startup-sequence mt-4">
+
+
+            <div class="startup-item">
+
+                <span>
+                    1
+                </span>
+
+                <i class="bi bi-database-fill"></i>
+
+                <strong>
+                    MySQL 8
+                </strong>
+
+                <small>
+                    Ensure database service is running
+                </small>
+
+            </div>
+
+
+            <div class="startup-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
+            <div class="startup-item">
+
+                <span>
+                    2
+                </span>
+
+                <i class="bi bi-hdd-network"></i>
+
+                <strong>
+                    Spring APIs
+                </strong>
+
+                <small>
+                    Start ports 8081–8087
+                </small>
+
+            </div>
+
+
+            <div class="startup-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
+            <div class="startup-item">
+
+                <span>
+                    3
+                </span>
+
+                <i class="bi bi-window-stack"></i>
+
+                <strong>
+                    ERP Dashboard
+                </strong>
+
+                <small>
+                    Start port 8090
+                </small>
+
+            </div>
+
+
+            <div class="startup-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
+            <div class="startup-item">
+
+                <span>
+                    4
+                </span>
+
+                <i class="bi bi-robot"></i>
+
+                <strong>
+                    Agent Control Tower
+                </strong>
+
+                <small>
+                    Start port 9000
+                </small>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         VERIFY
+         ========================================================= -->
+
+    <section class="run-soft-section py-5">
+
+        <div class="container">
+
+            <div class="section-heading">
+
+                <div class="eyebrow">
+                    Final Verification
+                </div>
+
+                <h2>
+                    Confirm the Local Environment
+                </h2>
+
+            </div>
+
+
+            <div class="verification-grid mt-4">
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            CRM
+                        </strong>
+
+                        <span>
+                            localhost:8081
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            Vendor
+                        </strong>
+
+                        <span>
+                            localhost:8082
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            Procurement
+                        </strong>
+
+                        <span>
+                            localhost:8083
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            WMS Inbound
+                        </strong>
+
+                        <span>
+                            localhost:8084
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            OMS
+                        </strong>
+
+                        <span>
+                            localhost:8085
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            WMS Outbound
+                        </strong>
+
+                        <span>
+                            localhost:8086
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+
+                        <strong>
+                            TMS
+                        </strong>
+
+                        <span>
+                            localhost:8087
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card ui-verification">
+
+                    <i class="bi bi-window-stack"></i>
+
+                    <div>
+
+                        <strong>
+                            ERP Dashboard
+                        </strong>
+
+                        <span>
+                            localhost:8090
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-card agent-verification">
+
+                    <i class="bi bi-robot"></i>
+
+                    <div>
+
+                        <strong>
+                            Agent Control Tower
+                        </strong>
+
+                        <span>
+                            127.0.0.1:9000
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         READY
+         ========================================================= -->
+
+    <section class="container py-5">
+
+        <div class="ready-card">
+
+            <div class="ready-icon">
+
+                <i class="bi bi-rocket-takeoff-fill"></i>
+
+            </div>
+
+            <div>
+
+                <div class="card-kicker">
+                    Environment Ready
+                </div>
+
+                <h2>
+                    You Are Ready to Run the Agentic AI Demonstration
+                </h2>
+
+                <p>
+                    With the databases initialized, seven Spring Boot APIs
+                    running, the ERP dashboard available and the Python Agent
+                    Control Tower connected to Anthropic, the entire local
+                    end-to-end supply-chain environment is ready.
+                </p>
+
+                <a th:href="@{/demo}"
+                   class="btn btn-primary">
+
+                    Continue to Live Demo
+
+                    <i class="bi bi-arrow-right ms-2"></i>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

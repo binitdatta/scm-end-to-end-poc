@@ -1,0 +1,89 @@
+<nav th:fragment="navbar" class="navbar navbar-expand-xl navbar-dark app-navbar sticky-top shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+            <span class="brand-mark"><i class="bi bi-diagram-3-fill"></i></span>
+            <span>
+                <strong>Enterprise Agentic AI</strong>
+                <small class="brand-subtitle">SCM Proof of Concept</small>
+            </span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav ms-auto align-items-xl-center gap-xl-1">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'home'} ? ' active'" th:href="@{/}">
+                        <i class="bi bi-house-door me-1"></i>Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'purpose'} ? ' active'" th:href="@{/purpose}">
+                        <i class="bi bi-bullseye me-1"></i>Purpose
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'business'} ? ' active'" th:href="@{/business-case}">
+                        <i class="bi bi-briefcase me-1"></i>Business Case
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'architecture'} ? ' active'" th:href="@{/architecture}">
+                        <i class="bi bi-diagram-3 me-1"></i>Architecture
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'demo'} ? ' active'" th:href="@{/demo}">
+                        <i class="bi bi-play-circle me-1"></i>Live POC
+                    </a>
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       th:classappend="${activePage == 'run-locally'} ? ' active'"
+                       th:href="@{/run-locally}">
+
+                        <i class="bi bi-laptop me-1"></i>
+                        Run Locally
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle"
+                       th:classappend="${activePage == 'training'} ? ' active'"
+                       href="#" id="trainingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-mortarboard me-1"></i>Training
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end training-dropdown shadow-lg border-0"
+                         aria-labelledby="trainingDropdown">
+                        <div class="px-3 pt-2 pb-1">
+                            <div class="dropdown-eyebrow">YouTube Course / Playlist</div>
+                            <a class="dropdown-item featured-item mt-2" th:href="@{/training}">
+                                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Course Roadmap
+                            </a>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item lesson-link"
+                           th:each="item : ${lessons}"
+                           th:href="@{'/training/' + ${item.slug}}">
+                            <span class="lesson-number" th:text="${#numbers.formatInteger(item.number, 2)}">01</span>
+                            <span th:text="${item.shortTitle}">Lesson</span>
+                        </a>
+                    </div>
+                </li>
+
+                <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
+                    <a class="btn btn-light btn-sm nav-action" th:href="${githubUrl}" target="_blank" rel="noopener">
+                        <i class="bi bi-github me-1"></i>GitHub
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

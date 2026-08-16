@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+    <section class="hero-section">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <div class="eyebrow"><i class="bi bi-stars me-2"></i>Enterprise AI, grounded in enterprise architecture</div>
+                    <h1 class="display-4 fw-bold mt-3">From a Human Goal to an Auditable Supply Chain Execution</h1>
+                    <p class="lead text-secondary mt-3">
+                        A practical course built around a working Agentic AI POC: Python + LangGraph + Anthropic planning,
+                        independently running Spring Boot REST services, isolated MySQL schemas, event-driven visibility,
+                        and Human-in-the-Loop control.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a class="btn btn-primary btn-lg" th:href="@{/training}">
+                            <i class="bi bi-play-fill me-2"></i>Start the Course
+                        </a>
+                        <a class="btn btn-outline-primary btn-lg" th:href="@{/architecture}">
+                            <i class="bi bi-diagram-3 me-2"></i>Explore Architecture
+                        </a>
+                    </div>
+                    <div class="hero-facts mt-4">
+                        <span><i class="bi bi-check-circle-fill"></i> 7 Spring Boot Services</span>
+                        <span><i class="bi bi-check-circle-fill"></i> 1 Agentic Control Tower</span>
+                        <span><i class="bi bi-check-circle-fill"></i> 1 End-to-End Business Goal</span>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="hero-panel">
+                        <div class="hero-panel-header">
+                            <span><i class="bi bi-chat-square-text-fill me-2"></i>Example Goal</span>
+                            <span class="badge text-bg-primary">Natural Language</span>
+                        </div>
+                        <p class="prompt-text mb-0">
+                            “Run a full end-to-end supply chain cycle for the Spring promotion: create and launch a CRM campaign,
+                            send an RFQ to vendors and score their quotes, create and approve a Purchase Order, receive goods into
+                            the warehouse, fulfill a store order, dispatch the shipment, and confirm proof of delivery.”
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="section-heading">
+            <div class="eyebrow">What this POC proves</div>
+            <h2>Agentic AI should orchestrate enterprise capabilities — not replace them</h2>
+            <p>
+                The model reasons and plans. The deterministic systems still own transactions, data, authorization,
+                lifecycle rules and operational truth.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-md-6 col-xl-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon"><i class="bi bi-cpu-fill"></i></div>
+                    <h3>Reason</h3>
+                    <p>Anthropic interprets the goal and helps produce a constrained multi-step plan.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon"><i class="bi bi-signpost-split-fill"></i></div>
+                    <h3>Orchestrate</h3>
+                    <p>LangGraph carries explicit state through tool execution, validation, approval and recovery paths.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon"><i class="bi bi-hdd-network-fill"></i></div>
+                    <h3>Execute</h3>
+                    <p>Approved tools invoke Spring Boot APIs that own CRM, vendor, procurement, WMS, OMS and TMS functions.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                    <h3>Govern</h3>
+                    <p>HITL gates, audit trails, policies and service boundaries contain the agent’s autonomy.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="soft-blue-section py-5">
+        <div class="container">
+            <div class="section-heading mb-4">
+                <div class="eyebrow">Two views of the same enterprise</div>
+                <h2>Traditional ERP operations + Agentic orchestration</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-xl-7">
+                    <div class="screenshot-card">
+                        <div class="screenshot-title"><i class="bi bi-window-stack me-2"></i>Spring Boot ERP Control Centre</div>
+                        <img th:src="@{/images/erp-control-centre.png}" class="img-fluid rounded-3" alt="Spring Boot ERP Control Centre">
+                    </div>
+                </div>
+                <div class="col-xl-5">
+                    <div class="screenshot-card">
+                        <div class="screenshot-title"><i class="bi bi-robot me-2"></i>Python / LangGraph Agent Control Tower</div>
+                        <img th:src="@{/images/agent-control-tower.png}" class="img-fluid rounded-3" alt="Agent Control Tower">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-8">
+                <div class="callout-card h-100">
+                    <span class="callout-label">Course thesis</span>
+                    <h2>A serious enterprise agent is a distributed system with an LLM inside it.</h2>
+                    <p class="mb-0">
+                        The course uses the POC to explain the architecture around the model: APIs, state, bounded contexts,
+                        data ownership, eventing, security, HITL, failure recovery, observability and responsible autonomy.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="next-card h-100">
+                    <span class="small text-uppercase fw-bold text-primary">Next</span>
+                    <h3 class="mt-2">Why build this POC?</h3>
+                    <p>Start with the purpose and the enterprise problem the architecture is designed to demonstrate.</p>
+                    <a class="btn btn-primary" th:href="@{/purpose}">Purpose <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

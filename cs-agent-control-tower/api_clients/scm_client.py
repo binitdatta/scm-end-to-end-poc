@@ -7,8 +7,12 @@ All methods raise on non-2xx so callers can catch cleanly.
 from __future__ import annotations
 
 import os
-import requests
 from typing import Any
+
+import requests
+
+from observability.http_logger import logged_request
+from api_clients.keycloak_auth import auth_header
 
 _BASES: dict[str, str] = {
     "crm":          os.getenv("CRM_URL",          "http://localhost:8081"),
@@ -25,24 +29,20 @@ TIMEOUT = int(os.getenv("API_TIMEOUT_SECONDS", "10"))
 
 def _get(service: str, path: str) -> dict[str, Any]:
     url = f"{_BASES[service]}{path}"
-    r = requests.get(url, timeout=TIMEOUT)
-    r.raise_for_status()
+    r = logged_request("GET", service, url, timeout=TIMEOUT, headers=auth_header())
     return r.json()
 
 
 def _post(service: str, path: str, body: dict[str, Any]) -> dict[str, Any]:
     url = f"{_BASES[service]}{path}"
-    r = requests.post(url, json=body, timeout=TIMEOUT)
-    r.raise_for_status()
+    r = logged_request("POST", service, url, timeout=TIMEOUT, json_body=body, headers=auth_header())
     return r.json()
 
 
 def _put(service: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
     url = f"{_BASES[service]}{path}"
-    r = requests.put(url, json=body or {}, timeout=TIMEOUT)
-    r.raise_for_status()
+    r = logged_request("PUT", service, url, timeout=TIMEOUT, json_body=body or {}, headers=auth_header())
     return r.json()
-
 
 # ---------------------------------------------------------------------------
 # CRM  :8081
@@ -499,6 +499,11 @@ def tms_confirm_pod(load_external_id: str,
 
 # ---------------------------------------------------------------------------
 # Health check helper
+#
+# Deliberately NOT routed through logged_request/audit logging: this is a
+# frequent (every 30s from the UI's auto-refresh, plus every manual
+# refresh click) low-value operational ping, not a business call. Logging
+# it would flood the audit trail with noise Security/Finance don't need.
 # ---------------------------------------------------------------------------
 def health_check_all() -> dict[str, bool]:
     results: dict[str, bool] = {}

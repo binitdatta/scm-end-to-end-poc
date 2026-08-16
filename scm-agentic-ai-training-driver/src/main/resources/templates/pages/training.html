@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<main>
+    <section class="page-hero">
+        <div class="container py-5">
+            <div class="eyebrow">YouTube Course / Playlist</div>
+            <h1>Enterprise Agentic AI — Training Roadmap</h1>
+            <p class="lead">
+                Sixteen focused sessions designed for 5–10 minute videos. Each lesson is a talk-track page with concepts,
+                execution flow, demo moments and audience takeaways.
+            </p>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="course-summary">
+            <div><strong>16</strong><span>Sessions</span></div>
+            <div><strong>5–10</strong><span>Minutes each</span></div>
+            <div><strong>7</strong><span>Spring Boot services</span></div>
+            <div><strong>1</strong><span>Working POC</span></div>
+        </div>
+
+        <div class="course-grid mt-5">
+            <a class="course-card"
+               th:each="item : ${lessons}"
+               th:href="@{'/training/' + ${item.slug}}">
+                <div class="course-card-top">
+                    <span class="course-number" th:text="${#numbers.formatInteger(item.number, 2)}">01</span>
+                    <span class="category-badge" th:text="${item.category}">Foundation</span>
+                </div>
+                <h3 th:text="${item.title}">Lesson title</h3>
+                <p th:text="${item.objective}">Objective</p>
+                <div class="course-card-footer">
+                    <span><i class="bi bi-clock me-1"></i><span th:text="${item.duration}">8 min</span></span>
+                    <span class="open-link">Open <i class="bi bi-arrow-right"></i></span>
+                </div>
+            </a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

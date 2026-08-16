@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | Enterprise Agentic AI'">Enterprise Agentic AI</title>
+    <meta name="description" content="Training driver for an enterprise SCM Agentic AI proof of concept using Python, LangGraph, Anthropic and Spring Boot.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link th:href="@{/css/app.css}" rel="stylesheet">
+    <link th:href="@{/css/pages.css}" rel="stylesheet">
+    <link th:href="@{/css/training.css}" rel="stylesheet">
+    <link th:href="@{/css/run-guide.css}" rel="stylesheet">
+</head>
+</html>

@@ -96,3 +96,17 @@ for port in 8081 8082 8083 8084 8085 8086 8087 8090; do
     | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','UNKNOWN'))"
 done
 ```
+
+``` 
+# Get a token for scm.admin using password grant (test only)
+TOKEN=$(curl -s -X POST \
+  "http://localhost:8080/realms/scm-poc/protocol/openid-connect/token" \
+  -d "grant_type=password" \
+  -d "client_id=scm-python-chatbot" \
+  -d "username=scm.admin" \
+  -d "password=password" \
+  -d "scope=openid" \
+  | jq -r '.access_token')
+
+echo "Token starts with: ${TOKEN:0:50}..."
+```

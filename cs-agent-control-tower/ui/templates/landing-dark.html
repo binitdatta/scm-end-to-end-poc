@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCM Agentic AI Control Tower</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --tower-bg:   #0d0f14;
+      --panel-bg:   #13161e;
+      --panel-bg-2: #171b26;
+      --border-col: #222735;
+      --accent:     #3d8bfd;
+      --text-muted: #6c7a99;
+      --c-blue:     #7ec8e3;
+      --c-green:    #a8d8a8;
+      --c-purple:   #c9a0dc;
+      --c-amber:    #ffc107;
+      --c-rose:     #f08080;
+    }
+    body { background: var(--tower-bg); color: #c9d1e0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    .navbar { background: var(--panel-bg); border-bottom: 1px solid var(--border-col); }
+    .navbar-brand { color: #c9d1e0 !important; font-weight: 600; }
+
+    .hero { padding: 4.5rem 1rem 3.5rem; text-align: center; background:
+            radial-gradient(ellipse 900px 400px at 50% -10%, rgba(61,139,253,.12), transparent); }
+    .hero-icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem; }
+    .hero h1 { font-weight: 700; font-size: 2.1rem; margin-bottom: .75rem; }
+    .hero p.lead { color: var(--text-muted); max-width: 700px; margin: 0 auto 1.75rem; font-size: 15px; }
+    .btn-login { font-size: 15px; padding: .65rem 1.75rem; }
+
+    .stat-strip { border-top: 1px solid var(--border-col); border-bottom: 1px solid var(--border-col);
+                  background: var(--panel-bg); }
+    .stat-item { padding: 1.5rem 1rem; text-align: center; }
+    .stat-item .num { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+    .stat-item .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+    section { padding: 3.5rem 0; }
+    .section-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); font-weight: 700; }
+    .section-title { font-weight: 700; font-size: 1.6rem; margin: .35rem 0 .5rem; }
+    .section-sub { color: var(--text-muted); font-size: 14px; max-width: 680px; }
+
+    .feat-card { background: var(--panel-bg); border: 1px solid var(--border-col); border-radius: 10px;
+                 padding: 1.5rem; height: 100%; transition: border-color .15s, transform .15s; }
+    .feat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+                 font-size: 1.25rem; margin-bottom: 1rem; }
+    .feat-card h5 { font-size: 15px; font-weight: 700; margin-bottom: .5rem; }
+    .feat-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 0; line-height: 1.6; }
+
+    .arch-flow { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; justify-content: center;
+                 background: var(--panel-bg); border: 1px solid var(--border-col); border-radius: 10px;
+                 padding: 1.25rem; margin-bottom: 2rem; }
+    .arch-node { background: #1a2e4a; color: #58a6ff; border: 1px solid var(--border-col); border-radius: 8px;
+                 padding: .5rem 1rem; font-size: 13px; white-space: nowrap; }
+    .arch-arrow { color: var(--text-muted); font-size: 1.1rem; }
+
+    .layer-card { background: var(--panel-bg); border: 1px solid var(--border-col); border-left: 3px solid var(--accent);
+                  border-radius: 8px; padding: 1.1rem 1.35rem; height: 100%; }
+    .layer-card h6 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .5rem; }
+    .layer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: .5rem; line-height: 1.6; }
+    .layer-card .modules { font-size: 11px; font-family: 'SFMono-Regular', Consolas, monospace; color: var(--accent); }
+
+    .svc-card { background: var(--panel-bg); border: 1px solid var(--border-col); border-radius: 10px;
+                padding: 1.35rem; height: 100%; }
+    .svc-card .svc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+    .svc-card .svc-icon { font-size: 1.4rem; }
+    .svc-card h5 { font-size: 14.5px; font-weight: 700; margin-bottom: .5rem; }
+    .svc-card p { font-size: 12.5px; color: var(--text-muted); margin-bottom: .6rem; line-height: 1.6; }
+    .svc-card ul { font-size: 12px; color: var(--text-muted); padding-left: 1.1rem; margin-bottom: 0; }
+    .svc-card ul li { margin-bottom: .2rem; }
+    .port-badge { font-size: 11px; font-family: 'SFMono-Regular', Consolas, monospace; }
+
+    .cta-band { background: var(--panel-bg-2); border-top: 1px solid var(--border-col);
+                border-bottom: 1px solid var(--border-col); text-align: center; padding: 3rem 1rem; }
+
+    footer { padding: 1.75rem 1rem; text-align: center; font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+      <span class="navbar-brand"><i class="bi bi-cpu-fill text-primary me-2"></i>Agent Control Tower</span>
+      <a href="/login" class="btn btn-sm btn-primary">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+      </a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-icon"><i class="bi bi-diagram-3"></i></div>
+    <h1>SCM Agentic AI Control Tower</h1>
+    <p class="lead">
+      An autonomous agent, powered by Claude, that plans and executes end-to-end supply
+      chain runs across seven live microservices — from campaign launch to proof of
+      delivery — pausing for human approval on the decisions that matter, and logging
+      every dollar it spends along the way.
+    </p>
+    <a href="/login" class="btn btn-primary btn-login">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Login with Keycloak
+    </a>
+  </div>
+
+  <div class="stat-strip">
+    <div class="container-fluid px-4">
+      <div class="row g-0">
+        <div class="col-6 col-md-3 stat-item"><div class="num">7</div><div class="lbl">Backend Services</div></div>
+        <div class="col-6 col-md-3 stat-item"><div class="num">8</div><div class="lbl">Agent Skills</div></div>
+        <div class="col-6 col-md-3 stat-item"><div class="num">100%</div><div class="lbl">Calls Audited</div></div>
+        <div class="col-6 col-md-3 stat-item"><div class="num">Sonnet 4.6</div><div class="lbl">Reasoning Model</div></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="container-fluid px-4">
+    <div class="section-eyebrow">01 — Why this exists</div>
+    <div class="section-title">Business Purpose</div>
+    <p class="section-sub mb-4">
+      A single supply chain run — launch a promotion, source it, receive it, and ship it —
+      normally means one person clicking through seven different systems in the right
+      order and hoping nothing was missed. This agent does that sequencing itself,
+      and only interrupts a human when the decision is actually worth interrupting for.
+    </p>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(61,139,253,.15);color:var(--accent)"><i class="bi bi-diagram-3"></i></div>
+          <h5>Autonomous Orchestration</h5>
+          <p>Given one plain-English goal, Claude decomposes it into an ordered sequence
+             of skill calls across CRM, Vendor, Procurement, WMS, OMS, and TMS — and
+             executes that plan step by step, adapting as each result comes back.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(255,193,7,.15);color:var(--c-amber)"><i class="bi bi-pause-circle"></i></div>
+          <h5>Human-in-the-Loop Governance</h5>
+          <p>High-value or irreversible actions — awarding a vendor contract, approving
+             a purchase order — pause the run and wait for explicit human approval,
+             rejection, or override before proceeding. Nothing expensive happens unattended.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(168,216,168,.15);color:var(--c-green)"><i class="bi bi-shield-check"></i></div>
+          <h5>Full Cost &amp; Audit Trail</h5>
+          <p>Every Claude call and every downstream API call is logged with full
+             request/response, token counts, and USD cost — broken down per user, per
+             day, and per month for Security and Finance to review directly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-fluid px-4" style="background:var(--panel-bg-2)">
+    <div class="section-eyebrow">02 — How it's built</div>
+    <div class="section-title">Architecture</div>
+    <p class="section-sub mb-4">
+      A Python/Flask agent sits between Claude and seven independent Spring Boot
+      microservices, with an event bus, a human-approval gate, and a full observability
+      layer wrapped around every call it makes.
+    </p>
+
+    <div class="arch-flow">
+      <span class="arch-node"><i class="bi bi-chat-dots me-1"></i>Claude (Planner)</span>
+      <span class="arch-arrow"><i class="bi bi-arrow-right"></i></span>
+      <span class="arch-node"><i class="bi bi-diagram-3 me-1"></i>Agent Orchestrator</span>
+      <span class="arch-arrow"><i class="bi bi-arrow-right"></i></span>
+      <span class="arch-node"><i class="bi bi-tools me-1"></i>Skill Modules</span>
+      <span class="arch-arrow"><i class="bi bi-arrow-right"></i></span>
+      <span class="arch-node"><i class="bi bi-hdd-network me-1"></i>7 SCM Services</span>
+      <span class="arch-arrow"><i class="bi bi-arrow-right"></i></span>
+      <span class="arch-node"><i class="bi bi-broadcast me-1"></i>RabbitMQ Events</span>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:var(--c-blue)"><i class="bi bi-chat-dots me-1"></i>Reasoning Layer</h6>
+          <p>Claude plans the step sequence, scores confidence per action, narrates the
+             finished run in plain English, and scans for anomalies across recent results.</p>
+          <div class="modules">reasoning/planner.py &middot; reasoning/narrator.py</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:var(--c-green)"><i class="bi bi-diagram-3 me-1"></i>Orchestration Layer</h6>
+          <p>A plain-Python execution loop runs the plan step by step, streaming log
+             lines to the UI over SSE as each skill completes.</p>
+          <div class="modules">orchestrator/graph.py &middot; orchestrator/state.py</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:var(--c-purple)"><i class="bi bi-tools me-1"></i>Skills Layer</h6>
+          <p>Eight self-contained modules, one per business capability, each wrapping the
+             relevant downstream service calls behind a single typed entry point.</p>
+          <div class="modules">skills/*.py</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:var(--c-amber)"><i class="bi bi-pause-circle me-1"></i>Governance Layer</h6>
+          <p>Approval gates block execution on high-value steps until a human approves,
+             rejects, or overrides — the run simply waits, it doesn't guess.</p>
+          <div class="modules">hitl/gate.py &middot; hitl/approval_routes.py</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:var(--c-rose)"><i class="bi bi-shield-lock me-1"></i>Security Layer</h6>
+          <p>Keycloak SSO gates every user, while a separate service-account client
+             authenticates the agent's own calls to the seven downstream APIs.</p>
+          <div class="modules">auth/oidc.py &middot; api_clients/keycloak_auth.py</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="layer-card">
+          <h6 style="color:#58a6ff"><i class="bi bi-graph-up me-1"></i>Observability Layer</h6>
+          <p>Every LLM call and HTTP call is logged to JSONL and SQLite with full
+             request/response and cost, plus Prometheus metrics for scraping.</p>
+          <div class="modules">observability/*.py &middot; /audit &middot; /metrics</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-fluid px-4">
+    <div class="section-eyebrow">03 — What it talks to</div>
+    <div class="section-title">Backend Services</div>
+    <p class="section-sub mb-4">
+      Seven independent Spring Boot microservices, each owning one stage of the supply
+      chain, all secured behind Keycloak. The agent calls all seven in sequence to
+      complete a full promotion cycle.
+    </p>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-blue)"><i class="bi bi-megaphone"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8081</span>
+          </div>
+          <h5>CRM</h5>
+          <p>Creates and launches the marketing campaign that kicks off a promotion —
+             budget, target region, and campaign dates.</p>
+          <ul><li>Create campaign</li><li>Launch campaign</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-green)"><i class="bi bi-building"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8082</span>
+          </div>
+          <h5>Vendor</h5>
+          <p>Runs the sourcing side — sends RFQs to vendors, collects and scores
+             incoming quotes, and awards the winning contract.</p>
+          <ul><li>Create &amp; open RFQ</li><li>Submit quotes</li><li>Award contract</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-purple)"><i class="bi bi-file-earmark-text"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8083</span>
+          </div>
+          <h5>Procurement</h5>
+          <p>Owns the purchase order lifecycle from the awarded quote through
+             approval, dispatch to the vendor, and completion.</p>
+          <ul><li>Create &amp; approve PO</li><li>Send / acknowledge</li><li>Mark complete</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-amber)"><i class="bi bi-box-arrow-in-down"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8084</span>
+          </div>
+          <h5>WMS Inbound</h5>
+          <p>Tracks incoming freight from ASN creation through dock scheduling,
+             arrival, receiving, and putaway into warehouse bins.</p>
+          <ul><li>Create ASN</li><li>Receive goods</li><li>Putaway to bin</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-rose)"><i class="bi bi-shop"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8085</span>
+          </div>
+          <h5>OMS</h5>
+          <p>Manages store-level inventory and order fulfillment — from order
+             creation through allocation, picking, and delivery confirmation.</p>
+          <ul><li>Update inventory</li><li>Allocate order</li><li>Mark delivered</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:#58a6ff"><i class="bi bi-box-arrow-up-right"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8086</span>
+          </div>
+          <h5>WMS Outbound</h5>
+          <p>Runs the warehouse's outbound side — pick waves, picking, packing,
+             and shipment creation, manifesting, and dispatch.</p>
+          <ul><li>Create pick wave</li><li>Pack &amp; manifest</li><li>Dispatch shipment</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--c-blue)"><i class="bi bi-truck"></i></span>
+            <span class="badge port-badge" style="background:#1a2e4a;color:#58a6ff">:8087</span>
+          </div>
+          <h5>TMS</h5>
+          <p>Handles last-mile delivery — load creation, driver assignment,
+             transit tracking, and proof-of-delivery confirmation per store.</p>
+          <ul><li>Assign driver</li><li>Track transit</li><li>Confirm POD</li></ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="svc-card" style="border-style:dashed">
+          <div class="svc-head">
+            <span class="svc-icon" style="color:var(--text-muted)"><i class="bi bi-key"></i></span>
+          </div>
+          <h5>Keycloak</h5>
+          <p>Not an SCM service, but the identity layer every one of the seven
+             above sits behind — both for this agent's calls and for human login.</p>
+          <ul><li>User SSO (PKCE)</li><li>Service-account tokens</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-band">
+    <div class="hero-icon"><i class="bi bi-box-arrow-in-right"></i></div>
+    <h4 class="fw-bold mb-2">Ready to run the agent?</h4>
+    <p class="section-sub mx-auto mb-4">Log in with your Keycloak account to launch a run, review pending approvals, or check the audit trail.</p>
+    <a href="/login" class="btn btn-primary btn-login">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Login with Keycloak
+    </a>
+  </div>
+
+  <footer>
+    SCM Agentic AI Control Tower &middot; Claude Sonnet 4.6 &middot; Secured by Keycloak
+  </footer>
+
+</body>
+</html>

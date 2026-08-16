@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Trail — SCM Agentic AI Control Tower</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy-dark:  #131c4d;
+      --navy-mid:   #2541c9;
+      --accent:     #3b5bfd;
+      --page-bg:    #f4f6fb;
+      --card-bg:    #ffffff;
+      --border-col: #e3e7f1;
+      --text-dark:  #10163a;
+      --text-muted: #64748b;
+      --success:    #1a7f37;
+      --warn:       #b45309;
+      --danger:     #d1242f;
+      --shadow-sm:  0 1px 3px rgba(16,23,58,.06), 0 1px 2px rgba(16,23,58,.04);
+      --shadow-md:  0 8px 24px rgba(16,23,58,.08);
+    }
+    body { background: var(--page-bg); color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+    .panel-card { background: var(--card-bg); border: 1px solid var(--border-col); border-radius: 12px; box-shadow: var(--shadow-sm); }
+    .top-bar { border-bottom: 1px solid var(--border-col); padding-bottom: 14px; margin-bottom: 18px; }
+    .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+    .table { color: var(--text-dark); font-size: 12.5px; }
+    .table thead th { color: var(--text-muted); font-weight: 700; font-size: 11px; text-transform: uppercase;
+                       letter-spacing: .05em; border-color: var(--border-col); background: transparent; }
+    .table td, .table th { vertical-align: middle; border-color: var(--border-col); }
+    .table tbody tr:hover { background: #f4f6fb; cursor: pointer; }
+    .mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11.5px; color: var(--navy-mid); }
+    .form-control, .form-select { background: #fbfcfe; border: 1px solid var(--border-col); color: var(--text-dark); font-size: 13px; }
+    .form-control:focus, .form-select:focus { background: #fff; border-color: var(--accent); color: var(--text-dark); box-shadow: 0 0 0 .2rem rgba(59,91,253,.12); }
+    .form-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .tab-nav .nav-link { color: var(--text-muted); border: none; border-bottom: 2px solid transparent; padding: 6px 14px; font-weight: 500; }
+    .tab-nav .nav-link.active { color: var(--navy-mid); border-bottom-color: var(--accent); background: transparent; }
+    .status-badge { font-size: 10.5px; padding: 2px 9px; border-radius: 20px; font-weight: 600; }
+    .badge-ok    { background: #e3f5e6; color: var(--success); }
+    .badge-error { background: #fbe4e4; color: var(--danger); }
+    pre.json-view { background: #fbfcfe; color: var(--success); font-size: 12px; max-height: 420px; overflow-y: auto;
+                     border-radius: 8px; padding: 14px; border: 1px solid var(--border-col); white-space: pre-wrap; word-break: break-all; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--border-col); color: var(--text-dark); }
+    .modal-header, .modal-footer { border-color: var(--border-col); }
+    .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
+    .chart-wrap { position: relative; height: 220px; }
+    .btn-plain { background: #fbfcfe; border: 1px solid var(--border-col); color: var(--text-dark); }
+    .btn-plain:hover { background: #eef1fb; border-color: var(--accent); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d7dce6; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="container-fluid p-4">
+
+  <div class="top-bar d-flex align-items-center justify-content-between">
+    <div>
+      <h5 class="fw-bold mb-0"><i class="bi bi-shield-lock me-2" style="color:var(--accent)"></i>Audit Trail</h5>
+      <div style="color:var(--text-muted);font-size:12px">LLM &amp; HTTP call detail, cost per user/day/month — for Security and Finance review</div>
+    </div>
+    <a href="/" class="btn btn-sm btn-plain">
+      <i class="bi bi-arrow-left me-1"></i>Back to Control Tower
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="panel-card p-3 mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label">From</label>
+        <input type="date" id="f-from" class="form-control form-control-sm">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">To</label>
+        <input type="date" id="f-to" class="form-control form-control-sm">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">User ID</label>
+        <input type="text" id="f-user" class="form-control form-control-sm" placeholder="all users" style="width:160px">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-sm btn-primary" style="background:var(--accent);border-color:var(--accent)" onclick="applyFilters()"><i class="bi bi-funnel me-1"></i>Apply</button>
+        <button class="btn btn-sm btn-plain" onclick="clearFilters()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-cost">$0.00</div><div class="stat-label">LLM cost</div></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-llm-calls">0</div><div class="stat-label">LLM calls</div></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-in-tok">0</div><div class="stat-label">Input tokens</div></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-out-tok">0</div><div class="stat-label">Output tokens</div></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-http-calls">0</div><div class="stat-label">HTTP calls</div></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="panel-card p-3"><div class="stat-value" id="stat-http-failed" style="color:var(--danger)">0</div><div class="stat-label">HTTP failures</div></div>
+    </div>
+  </div>
+
+  <!-- Charts + by-user table -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-7">
+      <div class="panel-card p-3 h-100">
+        <div class="stat-label mb-2">Cost by day</div>
+        <div class="chart-wrap"><canvas id="chart-by-day"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="panel-card p-3 h-100">
+        <div class="stat-label mb-2">Cost by user</div>
+        <div id="by-user-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="panel-card p-3">
+        <div class="stat-label mb-2">Cost by month</div>
+        <div id="by-month-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail tabs -->
+  <ul class="nav tab-nav mb-2">
+    <li class="nav-item"><a class="nav-link active" href="#" onclick="showDetailTab('llm',this)"><i class="bi bi-robot me-1"></i>LLM calls</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showDetailTab('http',this)"><i class="bi bi-hdd-network me-1"></i>HTTP calls</a></li>
+  </ul>
+
+  <div class="panel-card p-3" id="detail-llm">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr>
+          <th>Time</th><th>User</th><th>Caller</th><th>Model</th><th>In</th><th>Out</th><th>Cost</th><th>Duration</th><th>Status</th>
+        </tr></thead>
+        <tbody id="llm-calls-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel-card p-3 d-none" id="detail-http">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr>
+          <th>Time</th><th>User</th><th>Service</th><th>Method</th><th>URL</th><th>Status</th><th>Duration</th>
+        </tr></thead>
+        <tbody id="http-calls-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="detailModalTitle">Call detail</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-plain" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let dayChart = null;
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtUsd(n) { return '$' + (Number(n) || 0).toFixed(4); }
+function fmtNum(n) { return (Number(n) || 0).toLocaleString(); }
+function fmtMs(n) { return n != null ? Math.round(n) + ' ms' : '—'; }
+function fmtTs(ts) { return ts ? ts.replace('T',' ').substring(0,19) : '—'; }
+
+function currentQuery() {
+  const p = new URLSearchParams();
+  const from = document.getElementById('f-from').value;
+  const to   = document.getElementById('f-to').value;
+  const user = document.getElementById('f-user').value.trim();
+  if (from) p.set('from', from);
+  if (to)   p.set('to', to);
+  if (user) p.set('user_id', user);
+  return p;
+}
+
+function applyFilters() { loadAll(); }
+function clearFilters() {
+  document.getElementById('f-from').value = '';
+  document.getElementById('f-to').value = '';
+  document.getElementById('f-user').value = '';
+  loadAll();
+}
+
+function showDetailTab(id, el) {
+  ['llm','http'].forEach(t => document.getElementById('detail-' + t).classList.toggle('d-none', t !== id));
+  document.querySelectorAll('.tab-nav .nav-link').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+  return false;
+}
+
+async function loadAll() {
+  const q = currentQuery();
+  const [summary, byUser, byDay, byMonth, llmCalls, httpCalls] = await Promise.all([
+    fetch(`/audit/api/summary?${q}`).then(r => r.json()),
+    fetch(`/audit/api/by-user?${q}`).then(r => r.json()),
+    fetch(`/audit/api/by-day?${q}`).then(r => r.json()),
+    fetch(`/audit/api/by-month?${q}`).then(r => r.json()),
+    fetch(`/audit/api/llm-calls?${q}&limit=100`).then(r => r.json()),
+    fetch(`/audit/api/http-calls?${q}&limit=100`).then(r => r.json()),
+  ]);
+  renderSummary(summary);
+  renderByUser(byUser);
+  renderByMonth(byMonth);
+  renderDayChart(byDay);
+  renderLlmCalls(llmCalls);
+  renderHttpCalls(httpCalls);
+}
+
+function renderSummary(s) {
+  document.getElementById('stat-cost').textContent       = fmtUsd(s.llm_cost_usd);
+  document.getElementById('stat-llm-calls').textContent  = fmtNum(s.llm_call_count);
+  document.getElementById('stat-in-tok').textContent     = fmtNum(s.input_tokens);
+  document.getElementById('stat-out-tok').textContent    = fmtNum(s.output_tokens);
+  document.getElementById('stat-http-calls').textContent = fmtNum(s.http_call_count);
+  document.getElementById('stat-http-failed').textContent= fmtNum(s.http_failed_count);
+}
+
+function renderByUser(rows) {
+  const el = document.getElementById('by-user-table');
+  if (!rows.length) { el.innerHTML = '<div class="empty-state">No LLM calls in range.</div>'; return; }
+  el.innerHTML = `
+    <table class="table table-sm mb-0">
+      <thead><tr><th>User</th><th>Calls</th><th>Tokens (in/out)</th><th>Cost</th></tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr onclick="document.getElementById('f-user').value='${esc(r.user_id)}';applyFilters();">
+            <td class="mono">${esc(r.user_id)}</td>
+            <td>${fmtNum(r.calls)}</td>
+            <td>${fmtNum(r.in_tok)} / ${fmtNum(r.out_tok)}</td>
+            <td>${fmtUsd(r.cost)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderByMonth(rows) {
+  const el = document.getElementById('by-month-table');
+  if (!rows.length) { el.innerHTML = '<div class="empty-state">No LLM calls in range.</div>'; return; }
+  el.innerHTML = `
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Month</th><th>Calls</th><th>Cost</th></tr></thead>
+      <tbody>
+        ${rows.slice().reverse().map(r => `
+          <tr><td class="mono">${esc(r.month)}</td><td>${fmtNum(r.calls)}</td><td>${fmtUsd(r.cost)}</td></tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderDayChart(rows) {
+  const ctx = document.getElementById('chart-by-day').getContext('2d');
+  const labels = rows.map(r => r.day);
+  const data   = rows.map(r => r.cost);
+  if (dayChart) dayChart.destroy();
+  dayChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Cost (USD)', data, borderColor: '#3b5bfd', backgroundColor: 'rgba(59,91,253,.10)',
+      fill: true, tension: .25, pointRadius: 2, pointBackgroundColor: '#3b5bfd',
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b', maxTicksLimit: 10 }, grid: { color: '#e3e7f1' } },
+        y: { ticks: { color: '#64748b', callback: v => '$' + v }, grid: { color: '#e3e7f1' } },
+      },
+    },
+  });
+}
+
+function renderLlmCalls(rows) {
+  const el = document.getElementById('llm-calls-body');
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="9" class="empty-state">No LLM calls in range.</td></tr>'; return; }
+  el.innerHTML = rows.map(r => `
+    <tr onclick='showLlmDetail(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
+      <td class="mono">${fmtTs(r.ts)}</td>
+      <td class="mono">${esc(r.user_id)}</td>
+      <td>${esc(r.caller)}</td>
+      <td class="mono">${esc(r.model)}</td>
+      <td>${fmtNum(r.input_tokens)}</td>
+      <td>${fmtNum(r.output_tokens)}</td>
+      <td>${fmtUsd(r.cost_usd)}</td>
+      <td>${fmtMs(r.duration_ms)}</td>
+      <td><span class="status-badge ${r.status === 'success' ? 'badge-ok' : 'badge-error'}">${esc(r.status)}</span></td>
+    </tr>`).join('');
+}
+
+function renderHttpCalls(rows) {
+  const el = document.getElementById('http-calls-body');
+  if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="empty-state">No HTTP calls in range.</td></tr>'; return; }
+  el.innerHTML = rows.map(r => `
+    <tr onclick='showHttpDetail(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
+      <td class="mono">${fmtTs(r.ts)}</td>
+      <td class="mono">${esc(r.user_id)}</td>
+      <td>${esc(r.service)}</td>
+      <td class="mono">${esc(r.method)}</td>
+      <td class="mono" style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.url)}</td>
+      <td><span class="status-badge ${r.status_code && r.status_code < 400 ? 'badge-ok' : 'badge-error'}">${r.status_code ?? 'error'}</span></td>
+      <td>${fmtMs(r.duration_ms)}</td>
+    </tr>`).join('');
+}
+
+function prettyJson(str) {
+  if (!str) return '(none)';
+  try { return JSON.stringify(JSON.parse(str), null, 2); } catch (e) { return str; }
+}
+
+function showLlmDetail(r) {
+  document.getElementById('detailModalTitle').textContent = `${r.caller} — ${r.model} — ${fmtTs(r.ts)}`;
+  document.getElementById('detailModalBody').innerHTML = `
+    <div class="row g-2 mb-3">
+      <div class="col-4"><div class="stat-label">User</div><div class="mono">${esc(r.user_id)}</div></div>
+      <div class="col-4"><div class="stat-label">Tokens (in/out)</div><div>${fmtNum(r.input_tokens)} / ${fmtNum(r.output_tokens)}</div></div>
+      <div class="col-4"><div class="stat-label">Cost</div><div>${fmtUsd(r.cost_usd)}</div></div>
+    </div>
+    ${r.error ? `<div class="mb-2" style="color:var(--danger)"><strong>Error:</strong> ${esc(r.error)}</div>` : ''}
+    <div class="stat-label mb-1">Request</div>
+    <pre class="json-view">${esc(prettyJson(r.request_json))}</pre>
+    <div class="stat-label mb-1 mt-3">Response</div>
+    <pre class="json-view">${esc(prettyJson(r.response_json))}</pre>
+  `;
+  new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+function showHttpDetail(r) {
+  document.getElementById('detailModalTitle').textContent = `${r.method} ${r.service} — ${fmtTs(r.ts)}`;
+  document.getElementById('detailModalBody').innerHTML = `
+    <div class="row g-2 mb-3">
+      <div class="col-4"><div class="stat-label">User</div><div class="mono">${esc(r.user_id)}</div></div>
+      <div class="col-4"><div class="stat-label">Status</div><div>${r.status_code ?? 'error'}</div></div>
+      <div class="col-4"><div class="stat-label">Duration</div><div>${fmtMs(r.duration_ms)}</div></div>
+    </div>
+    <div class="stat-label mb-1">URL</div>
+    <div class="mono mb-3" style="word-break:break-all">${esc(r.url)}</div>
+    ${r.error ? `<div class="mb-2" style="color:var(--danger)"><strong>Error:</strong> ${esc(r.error)}</div>` : ''}
+    <div class="stat-label mb-1">Request body</div>
+    <pre class="json-view">${esc(prettyJson(r.request_json))}</pre>
+    <div class="stat-label mb-1 mt-3">Response body</div>
+    <pre class="json-view">${esc(prettyJson(r.response_json))}</pre>
+  `;
+  new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+loadAll();
+</script>
+</body>
+</html>

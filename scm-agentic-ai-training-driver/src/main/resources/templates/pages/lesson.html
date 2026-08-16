@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<main>
+    <section class="lesson-hero">
+        <div class="container py-5">
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <span class="lesson-index" th:text="'SESSION ' + ${#numbers.formatInteger(lesson.number, 2)}">SESSION 01</span>
+                <span class="lesson-category" th:text="${lesson.category}">Foundation</span>
+                <span class="lesson-duration"><i class="bi bi-clock me-1"></i><span th:text="${lesson.duration}">8 min</span></span>
+            </div>
+            <h1 th:text="${lesson.title}">Lesson Title</h1>
+            <p class="lead" th:text="${lesson.objective}">Objective</p>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="key-message">
+            <div class="key-message-icon"><i class="bi bi-lightbulb-fill"></i></div>
+            <div>
+                <span>Key message</span>
+                <h2 th:text="${lesson.keyMessage}">Key Message</h2>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <div class="col-lg-6">
+                <div class="lesson-panel h-100">
+                    <div class="lesson-panel-title">
+                        <i class="bi bi-journal-code"></i>
+                        <h3>Concepts to teach</h3>
+                    </div>
+                    <ul class="lesson-list">
+                        <li th:each="item : ${lesson.concepts}" th:text="${item}">Concept</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="lesson-panel h-100">
+                    <div class="lesson-panel-title">
+                        <i class="bi bi-signpost-split"></i>
+                        <h3>Execution flow</h3>
+                    </div>
+                    <ol class="flow-list">
+                        <li th:each="item : ${lesson.flow}" th:text="${item}">Step</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-lg-6">
+                <div class="lesson-panel demo-panel h-100">
+                    <div class="lesson-panel-title">
+                        <i class="bi bi-play-btn-fill"></i>
+                        <h3>Demo moments</h3>
+                    </div>
+                    <ul class="lesson-list check-list">
+                        <li th:each="item : ${lesson.demoSteps}" th:text="${item}">Demo step</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="lesson-panel takeaway-panel h-100">
+                    <div class="lesson-panel-title">
+                        <i class="bi bi-check2-circle"></i>
+                        <h3>Audience takeaways</h3>
+                    </div>
+                    <ul class="lesson-list check-list">
+                        <li th:each="item : ${lesson.takeaways}" th:text="${item}">Takeaway</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="lesson-nav mt-5">
+            <a class="btn btn-outline-primary" th:href="@{/training}">
+                <i class="bi bi-grid-3x3-gap me-2"></i>All Sessions
+            </a>
+            <a class="btn btn-primary" th:href="@{/demo}">
+                Live POC <i class="bi bi-box-arrow-up-right ms-2"></i>
+            </a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

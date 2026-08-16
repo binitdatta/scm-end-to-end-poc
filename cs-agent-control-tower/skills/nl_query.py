@@ -56,7 +56,7 @@ def run(params: dict[str, Any], context: dict[str, Any], policy: dict) -> StepRe
     try:
         # Step 1: Claude plans which APIs to call
         plan_msg = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=300,
             system=SYSTEM,
             messages=[{"role": "user", "content": f"Question: {question}"}],
@@ -78,7 +78,7 @@ def run(params: dict[str, Any], context: dict[str, Any], policy: dict) -> StepRe
 
         # Step 3: Claude narrates the answer
         narrate_msg = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=300,
             system=NARRATE_SYSTEM,
             messages=[{

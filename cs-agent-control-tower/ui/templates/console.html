@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,86 +8,130 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     :root {
-      --tower-bg:    #0d0f14;
-      --panel-bg:    #13161e;
-      --border-col:  #222735;
-      --accent:      #3d8bfd;
-      --success-col: #198754;
-      --warn-col:    #ffc107;
-      --danger-col:  #dc3545;
-      --text-muted:  #6c7a99;
+      --navy-dark:  #131c4d;
+      --navy-mid:   #2541c9;
+      --accent:     #3b5bfd;
+      --accent-hov: #2f4be0;
+      --page-bg:    #f4f6fb;
+      --card-bg:    #ffffff;
+      --border-col: #e3e7f1;
+      --text-dark:  #10163a;
+      --text-muted: #64748b;
+      --success:    #1a7f37;
+      --warn:       #b45309;
+      --danger:     #d1242f;
+      --shadow-sm:  0 1px 3px rgba(16,23,58,.06), 0 1px 2px rgba(16,23,58,.04);
+      --shadow-md:  0 8px 24px rgba(16,23,58,.08);
     }
-    body          { background: var(--tower-bg); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
-    .sidebar      { width: 260px; min-height: 100vh; background: var(--panel-bg); border-right: 1px solid var(--border-col); }
-    .main-panel   { flex: 1; overflow-y: auto; }
-    .panel-card   { background: var(--panel-bg); border: 1px solid var(--border-col); border-radius: 8px; }
-    .log-box      { background: #080a0f; border: 1px solid var(--border-col); border-radius: 6px;
-                    height: 320px; overflow-y: auto; font-family: 'Cascadia Code', 'Fira Mono', monospace;
-                    font-size: 12px; padding: 12px; }
+    body { background: var(--page-bg); color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+    .sidebar    { width: 270px; min-height: 100vh; background: #fff; border-right: 1px solid var(--border-col); }
+    .main-panel { flex: 1; overflow-y: auto; }
+    .panel-card { background: var(--card-bg); border: 1px solid var(--border-col); border-radius: 12px; box-shadow: var(--shadow-sm); }
+
+    .brand-row { display: flex; align-items: center; gap: .6rem; }
+    .brand-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--accent); color: #fff;
+                  display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .brand-sub { font-size: 11px; color: var(--text-muted); }
+
+    .user-badge { font-size: 11.5px; padding: 5px 11px; border-radius: 20px; background: #eef1fb;
+                  color: var(--navy-mid); font-weight: 600; }
+    .side-link  { font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 500; }
+    .side-link:hover { color: var(--accent); }
+
+    .log-box { background: #fbfcfe; border: 1px solid var(--border-col); border-radius: 8px;
+                height: 320px; overflow-y: auto; font-family: 'Cascadia Code', 'Fira Mono', monospace;
+                font-size: 12px; padding: 12px; }
     .log-line     { margin: 0; padding: 1px 0; white-space: pre-wrap; word-break: break-all; }
-    .log-plan     { color: #7ec8e3; }
-    .log-exec     { color: #a8d8a8; }
-    .log-done     { color: #5cba5c; }
-    .log-skip     { color: var(--warn-col); }
-    .log-fail     { color: var(--danger-col); }
-    .log-narrate  { color: #c9a0dc; }
-    .log-hitl     { color: var(--warn-col); font-weight: 600; }
-    .log-complete { color: #5cba5c; font-weight: 600; }
+    .log-plan     { color: #1650c9; }
+    .log-exec     { color: #1a7f37; }
+    .log-done     { color: #1a7f37; }
+    .log-skip     { color: var(--warn); }
+    .log-fail     { color: var(--danger); }
+    .log-narrate  { color: #8a3fc9; }
+    .log-hitl     { color: var(--warn); font-weight: 600; }
+    .log-complete { color: #1a7f37; font-weight: 600; }
     .log-start    { color: var(--text-muted); }
-    .log-error    { color: var(--danger-col); font-weight: 600; }
-    .log-default  { color: #c9d1e0; }
-    .run-card     { border-left: 3px solid var(--border-col); cursor: pointer; transition: background .15s; }
-    .run-card:hover { background: rgba(61,139,253,.07); }
-    .run-card.active { border-left-color: var(--accent); background: rgba(61,139,253,.1); }
-    .hitl-card    { border: 1px solid var(--warn-col); border-radius: 8px; background: #1a160a; padding: 16px; }
-    .status-badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
-    .badge-running    { background: rgba(61,139,253,.2); color: #7eb8ff; }
-    .badge-planning   { background: rgba(61,139,253,.15); color: #7eb8ff; }
-    .badge-completed  { background: rgba(25,135,84,.2); color: #5cba5c; }
-    .badge-paused     { background: rgba(255,193,7,.15); color: var(--warn-col); }
-    .badge-failed     { background: rgba(220,53,69,.2); color: #f08080; }
-    .badge-pending    { background: rgba(108,122,153,.15); color: var(--text-muted); }
-    .step-row     { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0;
-                    border-bottom: 1px solid var(--border-col); }
+    .log-error    { color: var(--danger); font-weight: 600; }
+    .log-default  { color: var(--text-dark); }
+
+    .run-card { border-left: 3px solid transparent; cursor: pointer; transition: background .15s; border-radius: 8px; }
+    .run-card:hover { background: #f4f6fb; }
+    .run-card.active { border-left-color: var(--accent); background: #eef1fb; }
+
+    .hitl-card { border: 1px solid #f5c977; border-radius: 10px; background: #fff8ec; padding: 16px; }
+
+    .status-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+    .badge-running    { background: #e5edff; color: var(--navy-mid); }
+    .badge-planning   { background: #e5edff; color: var(--navy-mid); }
+    .badge-completed  { background: #e3f5e6; color: var(--success); }
+    .badge-paused     { background: #fdf0d5; color: var(--warn); }
+    .badge-failed     { background: #fbe4e4; color: var(--danger); }
+    .badge-pending    { background: #eef0f4; color: var(--text-muted); }
+
+    .step-row  { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border-col); }
     .step-row:last-child { border-bottom: none; }
-    .step-icon    { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
-                    justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
-    .icon-done    { background: rgba(25,135,84,.25); color: #5cba5c; }
-    .icon-fail    { background: rgba(220,53,69,.2); color: #f08080; }
-    .icon-skip    { background: rgba(255,193,7,.15); color: var(--warn-col); }
-    .icon-running { background: rgba(61,139,253,.2); color: #7eb8ff; }
-    .icon-wait    { background: rgba(255,193,7,.15); color: var(--warn-col); }
-    .report-box   { background: #080a0f; border: 1px solid var(--border-col); border-radius: 6px;
-                    padding: 16px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
-    .svc-dot      { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .svc-up       { background: #5cba5c; }
-    .svc-down     { background: #f08080; }
-    .event-row    { font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border-col); }
+    .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                 font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+    .icon-done    { background: #e3f5e6; color: var(--success); }
+    .icon-fail    { background: #fbe4e4; color: var(--danger); }
+    .icon-skip    { background: #fdf0d5; color: var(--warn); }
+    .icon-running { background: #e5edff; color: var(--navy-mid); }
+    .icon-wait    { background: #fdf0d5; color: var(--warn); }
+
+    .report-box { background: #fbfcfe; border: 1px solid var(--border-col); border-radius: 8px;
+                  padding: 16px; font-size: 13px; line-height: 1.75; white-space: pre-wrap; color: var(--text-dark); }
+
+    .svc-dot   { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .svc-up    { background: var(--success); }
+    .svc-down  { background: var(--danger); }
+
+    .event-row { font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-col); }
     .event-row:last-child { border-bottom: none; }
-    .event-key    { color: var(--accent); font-family: monospace; }
-    #goal-input   { background: #080a0f; border-color: var(--border-col); color: #c9d1e0; resize: none; }
-    #goal-input:focus { border-color: var(--accent); box-shadow: none; }
-    .tab-nav .nav-link        { color: var(--text-muted); border: none; border-bottom: 2px solid transparent; padding: 6px 14px; }
-    .tab-nav .nav-link.active { color: #c9d1e0; border-bottom-color: var(--accent); background: transparent; }
-    .spinner-sm { width: 14px; height: 14px; }
-    .confidence-bar { height: 5px; border-radius: 3px; background: #222735; overflow: hidden; margin-top: 4px; }
+    .event-key { color: var(--accent); font-family: monospace; font-weight: 600; }
+
+    #goal-input { background: #fbfcfe; border-color: var(--border-col); color: var(--text-dark); resize: none; }
+    #goal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 .2rem rgba(59,91,253,.12); }
+
+    .tab-nav .nav-link        { color: var(--text-muted); border: none; border-bottom: 2px solid transparent; padding: 6px 14px; font-weight: 500; }
+    .tab-nav .nav-link.active { color: var(--navy-mid); border-bottom-color: var(--accent); background: transparent; }
+
+    .confidence-bar  { height: 5px; border-radius: 3px; background: #eef0f4; overflow: hidden; margin-top: 4px; }
     .confidence-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width .3s; }
+
+    .quick-goal-btn { background: #fbfcfe; border: 1px solid var(--border-col); color: var(--text-dark); font-size: 12px; text-align: left; }
+    .quick-goal-btn:hover { background: #eef1fb; border-color: var(--accent); }
+
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #222735; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #d7dce6; border-radius: 3px; }
+
+    .modal-header, .modal-footer { border-color: var(--border-col); }
+    pre.response-json { background: #fbfcfe; color: var(--success); font-size: 12px; max-height: 420px;
+                         overflow-y: auto; border-radius: 8px; padding: 14px; border: 1px solid var(--border-col); }
   </style>
 </head>
 <body>
 <div class="d-flex" style="min-height:100vh">
 
-  <!-- ── Sidebar ── -->
+  <!-- Sidebar -->
   <aside class="sidebar p-3 d-flex flex-column gap-3">
     <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <i class="bi bi-cpu-fill text-primary"></i>
-        <span class="fw-semibold" style="color:#c9d1e0">Agent Control Tower</span>
+      <div class="brand-row mb-1">
+        <span class="brand-icon"><i class="bi bi-cpu-fill"></i></span>
+        <span class="fw-bold" style="color:var(--text-dark)">Agent Control Tower</span>
       </div>
-      <div style="color:var(--text-muted);font-size:11px">SCM Agentic AI · v1.0</div>
+      <div class="brand-sub">SCM Agentic AI &middot; v1.0</div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between">
+      <span class="user-badge" title="{{ user_email or '' }}">
+        <i class="bi bi-person-fill me-1"></i>{{ user_id }}
+      </span>
+      <div class="d-flex gap-2">
+        <a class="side-link" href="/audit"><i class="bi bi-shield-lock me-1"></i>Audit Trail</a>
+        <a class="side-link" href="/logout"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+      </div>
     </div>
 
     <hr style="border-color:var(--border-col);margin:0">
@@ -97,7 +141,7 @@
       <label class="form-label" style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Goal</label>
       <textarea id="goal-input" class="form-control form-control-sm mb-2" rows="4"
         placeholder="Run a full supply chain cycle for the spring promotion..."></textarea>
-      <button class="btn btn-primary btn-sm w-100" onclick="startRun()">
+      <button class="btn btn-primary btn-sm w-100" onclick="startRun()" style="background:var(--accent);border-color:var(--accent);font-weight:600">
         <i class="bi bi-play-fill me-1"></i>Run Agent
       </button>
     </div>
@@ -108,21 +152,21 @@
     <div>
       <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Quick goals</div>
       <div class="d-flex flex-column gap-1">
-        <button class="btn btn-sm text-start" style="background:#1a1d27;border:1px solid var(--border-col);color:#c9d1e0;font-size:12px"
+        <button class="btn btn-sm quick-goal-btn"
           onclick="setGoal('Run a full end-to-end supply chain cycle for the Spring promotion including campaign, vendor RFQ, PO, receiving, fulfillment, dispatch, and delivery.')">
-          <i class="bi bi-arrow-repeat text-primary me-1"></i>Full E2E cycle
+          <i class="bi bi-arrow-repeat me-1" style="color:var(--accent)"></i>Full E2E cycle
         </button>
-        <button class="btn btn-sm text-start" style="background:#1a1d27;border:1px solid var(--border-col);color:#c9d1e0;font-size:12px"
+        <button class="btn btn-sm quick-goal-btn"
           onclick="setGoal('Scan all SCM services for anomalies and report the supply chain health status.')">
-          <i class="bi bi-shield-check text-warning me-1"></i>Anomaly scan
+          <i class="bi bi-shield-check me-1" style="color:var(--warn)"></i>Anomaly scan
         </button>
-        <button class="btn btn-sm text-start" style="background:#1a1d27;border:1px solid var(--border-col);color:#c9d1e0;font-size:12px"
+        <button class="btn btn-sm quick-goal-btn"
           onclick="setGoal('What is the current inventory level and how many active campaigns are running?')">
-          <i class="bi bi-chat-left-text text-info me-1"></i>NL query
+          <i class="bi bi-chat-left-text me-1" style="color:#1650c9"></i>NL query
         </button>
-        <button class="btn btn-sm text-start" style="background:#1a1d27;border:1px solid var(--border-col);color:#c9d1e0;font-size:12px"
+        <button class="btn btn-sm quick-goal-btn"
           onclick="setGoal('Create a vendor RFQ, score the quotes, and award the contract to the best vendor.')">
-          <i class="bi bi-building text-success me-1"></i>Vendor RFQ
+          <i class="bi bi-building me-1" style="color:var(--success)"></i>Vendor RFQ
         </button>
       </div>
     </div>
@@ -145,15 +189,15 @@
     </div>
   </aside>
 
-  <!-- ── Main panel ── -->
+  <!-- Main panel -->
   <main class="main-panel p-3">
 
     <!-- HITL alert banner -->
     <div id="hitl-banner" class="d-none mb-3">
       <div class="hitl-card">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-pause-circle-fill text-warning fs-5"></i>
-          <span class="fw-semibold" style="color:#ffc107">Agent paused — human approval required</span>
+          <i class="bi bi-pause-circle-fill fs-5" style="color:var(--warn)"></i>
+          <span class="fw-semibold" style="color:var(--warn)">Agent paused — human approval required</span>
           <span class="ms-auto status-badge badge-paused">Waiting</span>
         </div>
         <div id="hitl-details"></div>
@@ -171,16 +215,14 @@
     <!-- Live run tab -->
     <div id="tab-run">
       <div class="row g-3 mb-3">
-        <!-- Run info card -->
         <div class="col-md-4">
           <div class="panel-card p-3 h-100">
             <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Run info</div>
-            <div id="run-info" style="color:#c9d1e0;font-size:13px">
+            <div id="run-info" style="font-size:13px">
               <div class="mb-2" style="color:var(--text-muted)">No active run</div>
             </div>
           </div>
         </div>
-        <!-- Steps card -->
         <div class="col-md-8">
           <div class="panel-card p-3 h-100">
             <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Steps</div>
@@ -189,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Log -->
       <div class="panel-card p-3">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <span style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Agent log</span>
@@ -206,7 +247,7 @@
       <div class="panel-card p-3">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <span style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">RabbitMQ event bus</span>
-          <button class="btn btn-sm" style="background:#1a1d27;border:1px solid var(--border-col);color:#c9d1e0;font-size:12px" onclick="refreshEvents()">
+          <button class="btn btn-sm quick-goal-btn" onclick="refreshEvents()">
             <i class="bi bi-arrow-clockwise me-1"></i>Refresh
           </button>
         </div>
@@ -220,7 +261,7 @@
         <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">
           Claude's run narrative
         </div>
-        <div class="report-box" id="report-box" style="color:#c9d1e0">
+        <div class="report-box" id="report-box">
           No report yet. Complete a run to see Claude's narrative summary.
         </div>
       </div>
@@ -229,11 +270,41 @@
   </main>
 </div>
 
+<!-- Response modal -->
+<div class="modal fade" id="responseModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="responseModalTitle">API Response</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <pre class="response-json" id="responseModalBody"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm quick-goal-btn" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+// ── User identity ────────────────────────────────────────────────────────
+// Real identity comes from the Keycloak session cookie (set at /auth/callback
+// after login) — sent automatically on every same-origin fetch and
+// EventSource call, no manual header needed.
+function authFetch(url, opts = {}) {
+  return fetch(url, opts).then(res => {
+    if (res.status === 401) {
+      window.location.href = '/';
+    }
+    return res;
+  });
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let activeRunId  = null;
 let activeStream = null;
-let logLines     = [];
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
 function showTab(id, el) {
@@ -246,7 +317,6 @@ function showTab(id, el) {
   return false;
 }
 
-// ── Goal helpers ───────────────────────────────────────────────────────────
 function setGoal(text) {
   document.getElementById('goal-input').value = text;
 }
@@ -256,10 +326,9 @@ async function startRun() {
   const goal = document.getElementById('goal-input').value.trim();
   if (!goal) { alert('Please enter a goal.'); return; }
 
-  // Close existing stream
   if (activeStream) { activeStream.close(); activeStream = null; }
 
-  const res = await fetch('/agent/run', {
+  const res = await authFetch('/agent/run', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({goal})
@@ -341,7 +410,7 @@ function renderRunInfo(state) {
   el.innerHTML = `
     <div class="mb-2">${statusBadge}</div>
     <div class="mb-1" style="color:var(--text-muted);font-size:11px">Goal</div>
-    <div class="mb-2" style="color:#c9d1e0">${esc(state.goal || '—')}</div>
+    <div class="mb-2">${esc(state.goal || '—')}</div>
     <div class="mb-1" style="color:var(--text-muted);font-size:11px">Run ID</div>
     <div style="font-family:monospace;font-size:11px;color:var(--text-muted)">${esc((state.run_id||'').slice(0,16))}…</div>
   `;
@@ -363,8 +432,8 @@ function renderSteps(steps) {
       <div class="step-row">
         <div class="step-icon ${iconCls}">${icon}</div>
         <div style="flex:1">
-          <div style="color:#c9d1e0;font-weight:500">${esc(s.skill)}</div>
-          ${s.error ? `<div style="color:#f08080;font-size:11px">${esc(s.error)}</div>` : ''}
+          <div style="font-weight:600">${esc(s.skill)}</div>
+          ${s.error ? `<div style="color:var(--danger);font-size:11px">${esc(s.error)}</div>` : ''}
           ${conf != null ? `<div class="confidence-bar"><div class="confidence-fill" style="width:${conf}%"></div></div>` : ''}
           ${conf != null ? `<div style="color:var(--text-muted);font-size:10px">${conf}% confidence</div>` : ''}
         </div>
@@ -385,7 +454,7 @@ function pollHITL() {
 }
 
 async function refreshHITL() {
-  const res = await fetch('/hitl/pending');
+  const res = await authFetch('/hitl/pending');
   if (!res.ok) return;
   const pending = await res.json();
   const banner  = document.getElementById('hitl-banner');
@@ -396,10 +465,10 @@ async function refreshHITL() {
   banner.classList.remove('d-none');
   const gate = pending[0];
   document.getElementById('hitl-details').innerHTML = `
-    <div class="mb-1" style="font-size:13px;color:#c9d1e0"><strong>Skill:</strong> ${esc(gate.skill)}</div>
-    <div class="mb-1" style="font-size:13px;color:#c9d1e0"><strong>Action:</strong> ${esc(gate.action)}</div>
-    <div class="mt-2 p-2" style="background:#0d0f14;border-radius:5px;font-size:12px;color:#c9d1e0;line-height:1.6">
-      <strong style="color:#ffc107">Claude's recommendation:</strong><br>${esc(gate.recommendation)}
+    <div class="mb-1" style="font-size:13px"><strong>Skill:</strong> ${esc(gate.skill)}</div>
+    <div class="mb-1" style="font-size:13px"><strong>Action:</strong> ${esc(gate.action)}</div>
+    <div class="mt-2 p-2" style="background:#fff;border:1px solid #f5c977;border-radius:6px;font-size:12px;line-height:1.6">
+      <strong style="color:var(--warn)">Claude's recommendation:</strong><br>${esc(gate.recommendation)}
     </div>
     <div class="mt-1" style="font-size:11px;color:var(--text-muted)">
       Confidence: ${Math.round((gate.confidence||0)*100)}%
@@ -413,14 +482,14 @@ async function refreshHITL() {
     <button class="btn btn-sm btn-danger" onclick="resolveGate('${gate.gate_id}','reject')">
       <i class="bi bi-x-circle me-1"></i>Reject
     </button>
-    <button class="btn btn-sm" style="background:#1a1d27;border:1px solid #555;color:#c9d1e0" onclick="resolveGate('${gate.gate_id}','override')">
+    <button class="btn btn-sm quick-goal-btn" onclick="resolveGate('${gate.gate_id}','override')">
       <i class="bi bi-pencil me-1"></i>Override
     </button>
   `;
 }
 
 async function resolveGate(gateId, decision) {
-  await fetch(`/hitl/resolve/${gateId}`, {
+  await authFetch(`/hitl/resolve/${gateId}`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({decision})
@@ -431,7 +500,7 @@ async function resolveGate(gateId, decision) {
 
 // ── Run list ───────────────────────────────────────────────────────────────
 async function refreshRunList() {
-  const res = await fetch('/agent/runs');
+  const res = await authFetch('/agent/runs');
   if (!res.ok) return;
   const runs = await res.json();
   const el   = document.getElementById('run-list');
@@ -440,16 +509,16 @@ async function refreshRunList() {
     return;
   }
   el.innerHTML = runs.slice().reverse().map(r => `
-    <div class="run-card p-2 mb-1 rounded ${r.run_id === activeRunId ? 'active' : ''}"
+    <div class="run-card p-2 mb-1 ${r.run_id === activeRunId ? 'active' : ''}"
          onclick="loadRun('${r.run_id}')">
-      <div style="color:#c9d1e0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.goal)}</div>
+      <div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.goal)}</div>
       <div class="mt-1">${badgeFor(r.status)}</div>
     </div>
   `).join('');
 }
 
 async function loadRun(runId) {
-  const res = await fetch(`/agent/status/${runId}`);
+  const res = await authFetch(`/agent/status/${runId}`);
   if (!res.ok) return;
   const state = await res.json();
   activeRunId = runId;
@@ -463,7 +532,7 @@ async function loadRun(runId) {
 
 // ── Events ─────────────────────────────────────────────────────────────────
 async function refreshEvents() {
-  const res = await fetch('/events/recent');
+  const res = await authFetch('/events/recent');
   if (!res.ok) return;
   const events = await res.json();
   const el = document.getElementById('events-list');
@@ -481,7 +550,7 @@ async function refreshEvents() {
 
 // ── Service health ─────────────────────────────────────────────────────────
 async function refreshHealth() {
-  const res = await fetch('/services/health');
+  const res = await authFetch('/services/health');
   if (!res.ok) return;
   const health = await res.json();
   const el = document.getElementById('service-health');
@@ -492,7 +561,7 @@ async function refreshHealth() {
   el.innerHTML = Object.entries(labels).map(([k, label]) => `
     <div class="d-flex align-items-center gap-2 mb-1">
       <span class="svc-dot ${health[k] ? 'svc-up' : 'svc-down'}"></span>
-      <span style="color:${health[k] ? '#c9d1e0' : '#f08080'}">${label}</span>
+      <span style="color:${health[k] ? 'var(--text-dark)' : 'var(--danger)'}">${label}</span>
     </div>
   `).join('');
 }
@@ -503,8 +572,7 @@ function badgeFor(status) {
   const map = {
     running:'badge-running', planning:'badge-planning', completed:'badge-completed',
     paused:'badge-paused', failed:'badge-failed', pending:'badge-pending',
-    done:'badge-completed', skipped:'badge-paused', failed:'badge-failed',
-    waiting:'badge-paused',
+    done:'badge-completed', skipped:'badge-paused', waiting:'badge-paused',
   };
   return `<span class="status-badge ${map[s]||'badge-pending'}">${s}</span>`;
 }

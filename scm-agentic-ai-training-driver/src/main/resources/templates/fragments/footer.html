@@ -1,0 +1,13 @@
+<footer th:fragment="footer" class="app-footer mt-5">
+    <div class="container py-4 d-flex flex-column flex-lg-row justify-content-between gap-3">
+        <div>
+            <strong>Enterprise Agentic AI — SCM POC Training Driver</strong>
+            <div class="text-secondary small">Spring Boot 3.5.9 · Thymeleaf · Bootstrap 5 · Java 21</div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 small">
+            <a th:href="${githubUrl}" target="_blank" rel="noopener">Source Repository</a>
+            <a th:href="${erpDashboardUrl}" target="_blank" rel="noopener">ERP Control Centre</a>
+            <a th:href="${agentControlTowerUrl}" target="_blank" rel="noopener">Agent Control Tower</a>
+        </div>
+    </div>
+</footer>

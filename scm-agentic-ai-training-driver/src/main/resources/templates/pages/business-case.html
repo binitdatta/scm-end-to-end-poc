@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<main>
+    <section class="page-hero">
+        <div class="container py-5">
+            <div class="eyebrow">Business Case</div>
+            <h1>A Promotion Spans the Entire Supply Chain</h1>
+            <p class="lead">
+                A single business objective requires coordination across seven independent operational domains.
+                This is exactly where an agentic orchestration layer can add value.
+            </p>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="business-goal">
+            <div class="business-goal-icon"><i class="bi bi-megaphone-fill"></i></div>
+            <div>
+                <span class="small text-uppercase fw-bold text-primary">Human goal</span>
+                <p class="mb-0 mt-1">
+                    Launch the promotion, source the merchandise, procure it, receive it, fulfill store demand,
+                    ship it, and confirm delivery.
+                </p>
+            </div>
+        </div>
+
+        <div class="process-strip mt-5">
+            <div class="process-step">
+                <span>1</span><i class="bi bi-megaphone-fill"></i><strong>CRM</strong><small>Campaign</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>2</span><i class="bi bi-building-fill"></i><strong>Vendor</strong><small>RFQ & quotes</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>3</span><i class="bi bi-file-earmark-text-fill"></i><strong>Procurement</strong><small>Purchase Order</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>4</span><i class="bi bi-box-arrow-in-down"></i><strong>WMS Inbound</strong><small>Receive</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>5</span><i class="bi bi-shop"></i><strong>OMS</strong><small>Store order</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>6</span><i class="bi bi-box-arrow-up"></i><strong>WMS Outbound</strong><small>Dispatch</small>
+            </div>
+            <div class="process-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="process-step">
+                <span>7</span><i class="bi bi-truck"></i><strong>TMS</strong><small>POD</small>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-5">
+            <div class="col-lg-6">
+                <div class="content-card h-100">
+                    <div class="card-kicker">Without orchestration</div>
+                    <h3>Humans coordinate across application boundaries</h3>
+                    <p>
+                        Users understand the overall objective, but each application exposes only a fragment of the business process.
+                        People bridge the gaps by navigating screens, interpreting status and deciding what should happen next.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="content-card h-100">
+                    <div class="card-kicker">With bounded agentic orchestration</div>
+                    <h3>The goal becomes an executable plan</h3>
+                    <p>
+                        The agent translates the objective into approved capabilities, executes them in sequence,
+                        observes results and pauses when policy requires human judgment.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-panel mt-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <div class="eyebrow">Why this is a strong teaching scenario</div>
+                    <h2>It exposes the hard parts that toy agent demos often hide.</h2>
+                    <p class="mb-0">
+                        Multiple systems, distributed state, partial failure, business approvals, event timelines,
+                        independent data ownership and the need to prove what actually happened.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a class="btn btn-primary btn-lg" th:href="@{/architecture}">See the Architecture <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
