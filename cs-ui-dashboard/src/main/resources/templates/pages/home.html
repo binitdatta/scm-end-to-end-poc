@@ -7,56 +7,69 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     <style>
-        body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif}
-        .navbar{background:#161b22!important;border-bottom:1px solid #30363d}
-        .navbar-brand{font-weight:700;font-size:1.1rem;color:#58a6ff!important}
-        .nav-link{color:#8b949e!important;font-size:.85rem;padding:.45rem .75rem!important;border-radius:6px;transition:all .15s}
-        .nav-link:hover,.nav-link.active{color:#e6edf3!important;background:#21262d}
-        .card{background:#161b22;border:1px solid #30363d;border-radius:8px}
-        .card-header{background:#1c2128;border-bottom:1px solid #30363d;font-weight:600;font-size:.875rem}
-        .table{color:#e6edf3;font-size:.8rem}
-        .table thead th{background:#1c2128;color:#8b949e;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;border-color:#30363d}
-        .table tbody tr{border-color:#21262d}.table tbody tr:hover{background:#1c2128}
+        :root {
+            --navy-dark:  #131c4d;
+            --navy-mid:   #2541c9;
+            --accent:     #3b5bfd;
+            --accent-hov: #2f4be0;
+            --page-bg:    #f4f6fb;
+            --card-bg:    #ffffff;
+            --border-col: #e3e7f1;
+            --text-dark:  #10163a;
+            --text-muted: #64748b;
+            --success:    #1a7f37;
+            --warn:       #b45309;
+            --danger:     #d1242f;
+        }
+        body{background:var(--page-bg);color:var(--text-dark);font-family:'Segoe UI',system-ui,sans-serif}
+        .navbar{background:linear-gradient(90deg,var(--navy-dark),var(--navy-mid))!important;border-bottom:none}
+        .navbar-brand{font-weight:700;font-size:1.1rem;color:#fff!important;letter-spacing:.03em}
+        .nav-link{color:rgba(255,255,255,.75)!important;font-size:.85rem;padding:.45rem .75rem!important;border-radius:6px;transition:all .15s}
+        .nav-link:hover,.nav-link.active{color:#fff!important;background:rgba(255,255,255,.14)}
+        .card{background:var(--card-bg);border:1px solid var(--border-col);border-radius:8px}
+        .card-header{background:#eef1fb;border-bottom:1px solid var(--border-col);font-weight:600;font-size:.875rem;color:var(--text-dark)}
+        .table{color:var(--text-dark);font-size:.8rem}
+        .table thead th{background:#eef1fb;color:var(--text-muted);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;border-color:var(--border-col)}
+        .table tbody tr{border-color:var(--border-col)}.table tbody tr:hover{background:#f4f6fb}
         .table td,.table th{vertical-align:middle}
-        .form-control,.form-select{background:#0d1117;border:1px solid #30363d;color:#e6edf3;font-size:.83rem}
-        .form-control:focus,.form-select:focus{background:#0d1117;border-color:#58a6ff;color:#e6edf3;box-shadow:0 0 0 .2rem rgba(88,166,255,.25)}
-        .form-label{font-size:.78rem;color:#8b949e;font-weight:500;margin-bottom:.25rem}
-        .btn-primary{background:#238636;border-color:#2ea043;font-size:.82rem}
-        .btn-primary:hover{background:#2ea043;border-color:#3fb950}
-        .btn-outline-secondary{border-color:#30363d;color:#8b949e;font-size:.82rem}
-        .btn-outline-secondary:hover{background:#21262d;color:#e6edf3;border-color:#30363d}
+        .form-control,.form-select{background:#fbfcfe;border:1px solid var(--border-col);color:var(--text-dark);font-size:.83rem}
+        .form-control:focus,.form-select:focus{background:#fff;border-color:var(--accent);color:var(--text-dark);box-shadow:0 0 0 .2rem rgba(59,91,253,.15)}
+        .form-label{font-size:.78rem;color:var(--text-muted);font-weight:500;margin-bottom:.25rem}
+        .btn-primary{background:var(--accent);border-color:var(--accent);font-size:.82rem}
+        .btn-primary:hover{background:var(--accent-hov);border-color:var(--accent-hov)}
+        .btn-outline-secondary{border-color:var(--border-col);color:var(--text-muted);font-size:.82rem}
+        .btn-outline-secondary:hover{background:#eef1fb;color:var(--text-dark);border-color:var(--accent)}
         .btn-action{font-size:.75rem;padding:.25rem .55rem}
         .badge-status{font-size:.7rem;padding:.3em .6em;border-radius:4px}
-        .status-active,.status-allocated,.status-completed,.status-delivered,.status-pod_confirmed,.status-dispatched,.status-putaway_completed,.status-picked,.status-awarded{background:#1a4a1a;color:#3fb950}
-        .status-draft,.status-created,.status-pending,.status-scheduled{background:#1f2937;color:#8b949e}
-        .status-submitted,.status-in_transit,.status-picking,.status-assigned,.status-open,.status-under_review{background:#1a2e4a;color:#58a6ff}
-        .status-cancelled,.status-failed{background:#3a1a1a;color:#f85149}
-        .status-packed,.status-manifested,.status-arrived,.status-received{background:#2d1f3d;color:#bc8cff}
-        .status-shipped,.status-out_for_delivery{background:#1a3a2a;color:#56d364}
-        .page-header{border-bottom:1px solid #30363d;padding-bottom:1rem;margin-bottom:1.5rem}
-        .page-header h4{font-weight:700;color:#e6edf3;margin:0}
-        .page-header p{color:#8b949e;font-size:.85rem;margin:0}
-        .section-divider{border-color:#30363d;margin:1.5rem 0}
-        .stat-card{border:1px solid #30363d;border-radius:8px;background:#161b22;padding:1rem 1.25rem}
-        .stat-card .stat-value{font-size:1.75rem;font-weight:700;color:#58a6ff}
-        .stat-card .stat-label{font-size:.75rem;color:#8b949e;margin-top:.1rem}
-        .mono{font-family:'SFMono-Regular',Consolas,monospace;font-size:.78rem;color:#79c0ff}
-        .text-muted-sm{font-size:.75rem;color:#8b949e!important}
-        .modal-content{background:#161b22;border:1px solid #30363d}
-        .modal-header{border-bottom:1px solid #30363d}
-        .modal-footer{border-top:1px solid #30363d}
-        pre.response-json{background:#0d1117;color:#3fb950;font-size:.75rem;max-height:420px;overflow-y:auto;border-radius:6px;padding:1rem;border:1px solid #30363d}
-        #loadingOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center}
+        .status-active,.status-allocated,.status-completed,.status-delivered,.status-pod_confirmed,.status-dispatched,.status-putaway_completed,.status-picked,.status-awarded{background:#e3f5e6;color:var(--success)}
+        .status-draft,.status-created,.status-pending,.status-scheduled{background:#eef0f4;color:var(--text-muted)}
+        .status-submitted,.status-in_transit,.status-picking,.status-assigned,.status-in-transit,.status-open,.status-under_review{background:#e5edff;color:var(--navy-mid)}
+        .status-cancelled,.status-failed{background:#fbe4e4;color:var(--danger)}
+        .status-packed,.status-manifested,.status-arrived,.status-received{background:#f1e7fb;color:#8a3fc9}
+        .status-shipped,.status-out_for_delivery{background:#e0f5ee;color:#0d9488}
+        .page-header{border-bottom:1px solid var(--border-col);padding-bottom:1rem;margin-bottom:1.5rem}
+        .page-header h4{font-weight:700;color:var(--text-dark);margin:0}
+        .page-header p{color:var(--text-muted);font-size:.85rem;margin:0}
+        .section-divider{border-color:var(--border-col);margin:1.5rem 0}
+        .stat-card{border:1px solid var(--border-col);border-radius:8px;background:var(--card-bg);padding:1rem 1.25rem}
+        .stat-card .stat-value{font-size:1.75rem;font-weight:700;color:var(--accent)}
+        .stat-card .stat-label{font-size:.75rem;color:var(--text-muted);margin-top:.1rem}
+        .mono{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:.78rem;color:var(--navy-mid)}
+        .text-muted-sm{font-size:.75rem;color:var(--text-muted)!important}
+        .modal-content{background:var(--card-bg);border:1px solid var(--border-col)}
+        .modal-header{border-bottom:1px solid var(--border-col)}
+        .modal-footer{border-top:1px solid var(--border-col)}
+        pre.response-json{background:#fbfcfe;color:var(--success);font-size:.75rem;max-height:420px;overflow-y:auto;border-radius:6px;padding:1rem;border:1px solid var(--border-col)}
+        #loadingOverlay{display:none;position:fixed;inset:0;background:rgba(16,23,58,.35);z-index:9999;align-items:center;justify-content:center}
         #loadingOverlay.active{display:flex}
         .toast-container{position:fixed;top:1rem;right:1rem;z-index:10000}
-        .toast{background:#1c2128;border:1px solid #30363d;color:#e6edf3}
-        .toast.success .toast-body{color:#3fb950}
-        .toast.error .toast-body{color:#f85149}
+        .toast{background:var(--card-bg);border:1px solid var(--border-col);color:var(--text-dark)}
+        .toast.success .toast-body{color:var(--success)}
+        .toast.error .toast-body{color:var(--danger)}
         ::-webkit-scrollbar{width:6px;height:6px}
-        ::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
-        .empty-state{text-align:center;padding:3rem 1rem;color:#8b949e}
+        ::-webkit-scrollbar-thumb{background:#d7dce6;border-radius:3px}
+        .empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
         .empty-state i{font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4}
-
     </style>
 </head>
 <body>
@@ -82,32 +95,32 @@
 </div>
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/"><i class="bi bi-boxes me-1"></i>Burger Bliss ERP</a>
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="/"><i class="bi bi-boxes me-1"></i>Burger Bliss ERP</a>
 
-        <!-- LOGOUT always visible — outside collapse, same pattern as partials/layout.html -->
-        <form th:action="@{/logout}" method="post" class="m-0 ms-auto me-2 d-flex">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <button type="submit" class="btn btn-sm btn-danger">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </button>
-        </form>
+    <!-- LOGOUT always visible — outside collapse -->
+    <form th:action="@{/logout}" method="post" class="m-0 ms-auto me-2 d-flex">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-sm btn-danger">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+    </form>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nb"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="nb">
-            <ul class="navbar-nav me-auto gap-1">
-                <li class="nav-item"><a class="nav-link active" href="/"><i class="bi bi-grid-3x3-gap"></i> Overview </a></li>
-                <li class="nav-item"><a class="nav-link" href="/crm"><i class="bi bi-megaphone"></i> CRM <span class="badge bg-primary" style="font-size:.65rem">8081</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/vendor"><i class="bi bi-building"></i> Vendor <span class="badge bg-primary" style="font-size:.65rem">8082</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/procurement"><i class="bi bi-file-earmark-text"></i> Procurement <span class="badge bg-primary" style="font-size:.65rem">8083</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/wms-inbound"><i class="bi bi-box-arrow-in-down"></i> WMS In <span class="badge bg-primary" style="font-size:.65rem">8084</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/oms"><i class="bi bi-shop"></i> OMS <span class="badge bg-primary" style="font-size:.65rem">8085</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/wms-outbound"><i class="bi bi-box-arrow-up-right"></i> WMS Out <span class="badge bg-primary" style="font-size:.65rem">8086</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/tms"><i class="bi bi-truck"></i> TMS <span class="badge bg-primary" style="font-size:.65rem">8087</span></a></li>
-            </ul>
-            <span class="badge bg-success ms-2 px-3 py-2"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>SUMMER25-TOY</span>
-        </div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nb"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nb">
+      <ul class="navbar-nav me-auto gap-1">
+          <li class="nav-item"><a class="nav-link active" href="/"><i class="bi bi-grid-3x3-gap"></i> Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="/crm"><i class="bi bi-megaphone"></i> CRM <span class="badge bg-light text-primary" style="font-size:.65rem">8081</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/vendor"><i class="bi bi-building"></i> Vendor <span class="badge bg-light text-primary" style="font-size:.65rem">8082</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/procurement"><i class="bi bi-file-earmark-text"></i> Procurement <span class="badge bg-light text-primary" style="font-size:.65rem">8083</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/wms-inbound"><i class="bi bi-box-arrow-in-down"></i> WMS In <span class="badge bg-light text-primary" style="font-size:.65rem">8084</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/oms"><i class="bi bi-shop"></i> OMS <span class="badge bg-light text-primary" style="font-size:.65rem">8085</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/wms-outbound"><i class="bi bi-box-arrow-up-right"></i> WMS Out <span class="badge bg-light text-primary" style="font-size:.65rem">8086</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="/tms"><i class="bi bi-truck"></i> TMS <span class="badge bg-light text-primary" style="font-size:.65rem">8087</span></a></li>
+      </ul>
+      <span class="badge" style="background:rgba(255,255,255,.18);color:#fff"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>SUMMER25-TOY</span>
     </div>
+  </div>
 </nav>
 <main class="container-fluid px-4 py-4">
 

@@ -7,8 +7,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
+/**
+ * Builds one RestClient per downstream microservice.
+ *
+ * Every RestClient adds an Authorization: Bearer <token> header via
+ * KeycloakTokenService (client_credentials M2M grant).
+ * The token is cached and auto-renewed 30s before expiry.
+ */
 @Configuration
 public class WebClientConfig {
+
+    private final KeycloakTokenService tokenService;
+
+    public WebClientConfig(KeycloakTokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     @Bean("crmClient")
     public RestClient crmClient(@Value("${services.crm.url}") String url) {
@@ -49,7 +62,13 @@ public class WebClientConfig {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT,       MediaType.APPLICATION_JSON_VALUE)
+                // Intercept every request and add the current Bearer token
+                .requestInterceptor((request, body, execution) -> {
+                    String token = tokenService.getBearerToken();
+                    request.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                    return execution.execute(request, body);
+                })
                 .build();
     }
 }

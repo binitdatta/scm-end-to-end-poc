@@ -39,7 +39,8 @@
 
                     <p class="hero-description">
                         You will install the required development tools, clone the
-                        GitHub repository, create the MySQL schemas and seed data,
+                        GitHub repository, install and configure Keycloak 26 for
+                        SSO, create the MySQL schemas and seed data,
                         build and run seven independent Spring Boot REST APIs,
                         launch the Spring Boot ERP dashboard, and finally configure
                         and start the Python / LangGraph Agent Control Tower.
@@ -77,6 +78,11 @@
                         </div>
 
                         <h3>What You Will Run</h3>
+
+                        <div class="run-overview-item">
+                            <span>1</span>
+                            <p>Keycloak 26 Identity Server</p>
+                        </div>
 
                         <div class="run-overview-item">
                             <span>7</span>
@@ -129,12 +135,31 @@
             <p>
                 The POC is intentionally composed of independently running
                 applications rather than one monolithic process.
+                Keycloak 26 acts as the central Identity Provider for all services.
             </p>
 
         </div>
 
 
         <div class="runtime-flow mt-4">
+
+            <div class="runtime-node" style="background:linear-gradient(135deg,#1a3a5c,#0d1f33);border-color:#3b82f6;">
+
+                <i class="bi bi-shield-lock-fill"></i>
+
+                <strong>Keycloak 26</strong>
+
+                <small>Identity &amp; Access Management</small>
+
+                <span>localhost:8080</span>
+
+            </div>
+
+
+            <div class="runtime-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
 
             <div class="runtime-node runtime-agent">
 
@@ -243,6 +268,30 @@
                     <div class="prerequisite-number">01</div>
 
                     <div class="prerequisite-icon">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+
+                    <h3>
+                        Keycloak 26
+                    </h3>
+
+                    <p>
+                        Identity and Access Management server providing SSO,
+                        PKCE Authorization Code, and client_credentials flows.
+                    </p>
+
+                    <span class="prerequisite-purpose">
+                        Identity Provider
+                    </span>
+
+                </div>
+
+
+                <div class="prerequisite-card">
+
+                    <div class="prerequisite-number">02</div>
+
+                    <div class="prerequisite-icon">
                         <i class="bi bi-database-fill"></i>
                     </div>
 
@@ -265,7 +314,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">02</div>
+                    <div class="prerequisite-number">03</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-window-stack"></i>
@@ -289,7 +338,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">03</div>
+                    <div class="prerequisite-number">04</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-code-square"></i>
@@ -313,7 +362,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">04</div>
+                    <div class="prerequisite-number">05</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-filetype-py"></i>
@@ -337,7 +386,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">05</div>
+                    <div class="prerequisite-number">06</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-git"></i>
@@ -361,7 +410,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">06</div>
+                    <div class="prerequisite-number">07</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-terminal-fill"></i>
@@ -385,7 +434,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">07</div>
+                    <div class="prerequisite-number">08</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-cup-hot-fill"></i>
@@ -409,7 +458,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">08</div>
+                    <div class="prerequisite-number">09</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-box-seam-fill"></i>
@@ -433,7 +482,7 @@
 
                 <div class="prerequisite-card">
 
-                    <div class="prerequisite-number">09</div>
+                    <div class="prerequisite-number">10</div>
 
                     <div class="prerequisite-icon">
                         <i class="bi bi-filetype-py"></i>
@@ -617,6 +666,580 @@ cd scm-end-to-end-poc</code></pre>
 
 
     <!-- =========================================================
+         KEYCLOAK INSTALLATION  (NEW SECTION)
+         ========================================================= -->
+
+    <section class="container py-5" id="keycloak-setup">
+
+        <div class="run-step-header">
+
+            <span>04</span>
+
+            <div>
+
+                <div class="card-kicker">
+                    Identity &amp; Access Management
+                </div>
+
+                <h2>Install and Start Keycloak 26</h2>
+
+                <p>
+                    Keycloak 26 is the Identity Provider for the entire POC.
+                    All seven REST APIs, the ERP dashboard, and the Python
+                    chatbot authenticate through it.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Download card -->
+        <div class="special-app-card mt-4">
+
+            <div class="special-app-icon">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <div class="special-app-main">
+
+                <span class="special-label">Identity Provider</span>
+
+                <h3>Keycloak 26 Standalone</h3>
+
+                <p>
+                    Download the standalone ZIP distribution from the official
+                    Keycloak releases page. No Docker required — runs natively
+                    on macOS and Windows.
+                </p>
+
+                <a href="https://www.keycloak.org/downloads"
+                   target="_blank"
+                   rel="noopener">
+                    <i class="bi bi-download me-1"></i>
+                    keycloak.org/downloads
+                </a>
+
+            </div>
+
+            <div class="special-app-port">
+                <small>Auth</small>
+                <strong>:8080</strong>
+            </div>
+
+        </div>
+
+
+        <!-- Install steps -->
+        <div class="agent-step mt-5">
+
+            <div class="agent-step-number">1</div>
+
+            <div>
+
+                <h3>Extract and Navigate to the Keycloak Directory</h3>
+
+                <ul class="nav nav-pills os-tabs mt-3" id="kcExtractTabs" role="tablist">
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="pill"
+                                data-bs-target="#kcMacExtract" type="button">
+                            <i class="bi bi-apple me-1"></i>macOS
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill"
+                                data-bs-target="#kcWinExtract" type="button">
+                            <i class="bi bi-windows me-1"></i>Windows
+                        </button>
+                    </li>
+
+                </ul>
+
+                <div class="tab-content mt-3">
+
+                    <div class="tab-pane fade show active" id="kcMacExtract">
+                        <div class="command-card">
+                            <div class="command-card-header">
+                                <span><i class="bi bi-terminal me-2"></i>Terminal</span>
+                            </div>
+                            <pre><code># Unzip the downloaded archive
+unzip keycloak-26.x.x.zip
+
+# Move to a permanent location (optional)
+mv keycloak-26.x.x ~/keycloak-26
+
+cd ~/keycloak-26</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="kcWinExtract">
+                        <div class="command-card">
+                            <div class="command-card-header">
+                                <span><i class="bi bi-terminal me-2"></i>Command Prompt</span>
+                            </div>
+                            <pre><code>REM Extract with Windows Explorer or 7-Zip, then:
+cd C:\keycloak-26</code></pre>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="agent-step">
+
+            <div class="agent-step-number">2</div>
+
+            <div>
+
+                <h3>Start Keycloak in Development Mode</h3>
+
+                <p>
+                    Development mode disables HTTPS requirements and enables
+                    the admin console — ideal for local POC work.
+                </p>
+
+                <ul class="nav nav-pills os-tabs mt-3" id="kcStartTabs" role="tablist">
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="pill"
+                                data-bs-target="#kcMacStart" type="button">
+                            <i class="bi bi-apple me-1"></i>macOS
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill"
+                                data-bs-target="#kcWinStart" type="button">
+                            <i class="bi bi-windows me-1"></i>Windows
+                        </button>
+                    </li>
+
+                </ul>
+
+                <div class="tab-content mt-3">
+
+                    <div class="tab-pane fade show active" id="kcMacStart">
+                        <div class="command-card">
+                            <div class="command-card-header">
+                                <span><i class="bi bi-terminal me-2"></i>Terminal</span>
+                            </div>
+                            <pre><code>bin/kc.sh start-dev --http-port=8080</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="kcWinStart">
+                        <div class="command-card">
+                            <div class="command-card-header">
+                                <span><i class="bi bi-terminal me-2"></i>Command Prompt</span>
+                            </div>
+                            <pre><code>bin\kc.bat start-dev --http-port=8080</code></pre>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="run-note mt-3">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <div>
+                        <strong>Wait for the ready message</strong>
+                        <p class="mb-0">
+                            Keycloak is ready when you see:<br>
+                            <code>Keycloak 26.x.x on JVM (powered by Quarkus) started in ...</code>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="agent-step">
+
+            <div class="agent-step-number">3</div>
+
+            <div>
+
+                <h3>Create the Admin Account (First-Time Only)</h3>
+
+                <p>
+                    On the very first startup, Keycloak requires you to create an
+                    administrator account before the Admin Console becomes accessible.
+                </p>
+
+                <div class="command-card mt-3">
+                    <div class="command-card-header">
+                        <span><i class="bi bi-browser-chrome me-2"></i>Browser</span>
+                    </div>
+                    <pre><code>http://localhost:8080</code></pre>
+                </div>
+
+                <p class="mt-3">
+                    Open the URL above, set a username and password for the
+                    <strong>admin</strong> account, then click
+                    <strong>Create</strong>.
+                </p>
+
+                <div class="run-important mt-3">
+                    <i class="bi bi-shield-check"></i>
+                    <div>
+                        <strong>Remember your admin credentials</strong>
+                        <p class="mb-0">
+                            You will need the admin username and password every time
+                            you open the Keycloak Admin Console.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         KEYCLOAK REALM IMPORT  (NEW SECTION)
+         ========================================================= -->
+
+    <section class="run-soft-section py-5" id="keycloak-realm">
+
+        <div class="container">
+
+            <div class="run-step-header">
+
+                <span>05</span>
+
+                <div>
+
+                    <div class="card-kicker">
+                        Realm Configuration
+                    </div>
+
+                    <h2>Import the scm-poc Realm</h2>
+
+                    <p>
+                        The repository ships a ready-made Keycloak realm export
+                        file (<code>scm-poc-realm.json</code>) that creates all
+                        clients, roles, and test users in a single import.
+                        Do not create the realm manually — use the file.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- What the realm contains -->
+            <div class="service-table-wrapper mt-4">
+
+                <table class="table service-table align-middle mb-0">
+
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Purpose</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr>
+                        <td><span class="port-badge">Realm</span></td>
+                        <td><code>scm-poc</code></td>
+                        <td>Top-level security realm for the entire POC</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Client</span></td>
+                        <td><code>scm-python-chatbot</code></td>
+                        <td>Public PKCE client — Python chatbot browser login</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Client</span></td>
+                        <td><code>scm-service-client</code></td>
+                        <td>Confidential M2M client — Python chatbot → REST APIs</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Client</span></td>
+                        <td><code>scm-ui-dashboard</code></td>
+                        <td>Confidential client — Thymeleaf dashboard login</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Client</span></td>
+                        <td><code>cs-crm-api … cs-tms-api</code></td>
+                        <td>7 resource server clients (one per REST API)</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Role</span></td>
+                        <td><code>scm_admin</code></td>
+                        <td>Full read/write access to all services</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Role</span></td>
+                        <td><code>scm_manager</code></td>
+                        <td>Read all + write (POST/PUT/PATCH) to all services</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">Role</span></td>
+                        <td><code>scm_viewer</code></td>
+                        <td>Read-only (GET) access to all services</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">User</span></td>
+                        <td><code>scm.admin / Admin@2025!</code></td>
+                        <td>Test user — all three roles</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">User</span></td>
+                        <td><code>scm.manager / Manager@2025!</code></td>
+                        <td>Test user — scm_manager + scm_viewer</td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="port-badge">User</span></td>
+                        <td><code>scm.viewer / Viewer@2025!</code></td>
+                        <td>Test user — scm_viewer only</td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Import steps -->
+            <div class="agent-step mt-5">
+
+                <div class="agent-step-number">1</div>
+
+                <div>
+                    <h3>Locate the Realm File in the Repository</h3>
+                    <p>
+                        After cloning the repository, the realm file is at:
+                    </p>
+                    <div class="command-card mt-3">
+                        <div class="command-card-header">
+                            <span><i class="bi bi-folder2-open me-2"></i>Repository</span>
+                        </div>
+                        <pre><code>scm-end-to-end-poc/
+└── keycloak/
+    └── scm-poc-realm.json</code></pre>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">2</div>
+
+                <div>
+                    <h3>Open the Keycloak Admin Console</h3>
+                    <div class="command-card mt-3">
+                        <div class="command-card-header">
+                            <span><i class="bi bi-browser-chrome me-2"></i>Browser</span>
+                        </div>
+                        <pre><code>http://localhost:8080/admin</code></pre>
+                    </div>
+                    <p class="mt-3">
+                        Log in with the admin credentials you created during
+                        the first-time Keycloak setup.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">3</div>
+
+                <div>
+
+                    <h3>Import the Realm JSON</h3>
+
+                    <ol class="mt-3" style="line-height:2;">
+                        <li>
+                            In the top-left corner click the realm dropdown
+                            (currently showing <strong>master</strong>)
+                        </li>
+                        <li>Click <strong>Create realm</strong></li>
+                        <li>
+                            Click <strong>Browse</strong> next to
+                            <em>Realm file</em>
+                        </li>
+                        <li>
+                            Select <code>scm-poc-realm.json</code> from
+                            the repository's <code>keycloak/</code> folder
+                        </li>
+                        <li>Click <strong>Create</strong></li>
+                    </ol>
+
+                    <div class="run-important mt-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <strong>Always use the JSON file — never create the realm manually</strong>
+                            <p class="mb-0">
+                                The realm JSON pre-configures all eleven built-in
+                                client scopes (<code>openid</code>, <code>profile</code>,
+                                <code>email</code>, <code>roles</code>,
+                                <code>web-origins</code>, <code>acr</code>,
+                                <code>basic</code>, etc.) with their protocol mappers.
+                                Creating the realm through the UI without the JSON
+                                will result in missing scopes and broken token claims.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">4</div>
+
+                <div>
+
+                    <h3>Verify the Import</h3>
+
+                    <p>
+                        After import, confirm the following in the Admin Console
+                        with the <strong>scm-poc</strong> realm selected:
+                    </p>
+
+                    <div class="verification-grid mt-3">
+
+                        <div class="verification-card">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>
+                                <strong>Client Scopes</strong>
+                                <span>11 scopes including roles, profile, email</span>
+                            </div>
+                        </div>
+
+                        <div class="verification-card">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>
+                                <strong>Clients</strong>
+                                <span>10 clients (3 app + 7 resource servers)</span>
+                            </div>
+                        </div>
+
+                        <div class="verification-card">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>
+                                <strong>Realm Roles</strong>
+                                <span>scm_admin, scm_manager, scm_viewer</span>
+                            </div>
+                        </div>
+
+                        <div class="verification-card">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>
+                                <strong>Users</strong>
+                                <span>scm.admin, scm.manager, scm.viewer</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="agent-step">
+
+                <div class="agent-step-number">5</div>
+
+                <div>
+
+                    <h3>Smoke-Test the Token Endpoint</h3>
+
+                    <p>
+                        Run this command to confirm Keycloak is issuing valid
+                        JWT tokens with the expected roles claim.
+                    </p>
+
+                    <div class="command-card mt-3">
+                        <div class="command-card-header">
+                            <span><i class="bi bi-terminal me-2"></i>Terminal</span>
+                        </div>
+                        <pre><code># Request a token using the password grant (test only)
+curl -s -X POST \
+  "http://localhost:8080/realms/scm-poc/protocol/openid-connect/token" \
+  -d "grant_type=password" \
+  -d "client_id=scm-python-chatbot" \
+  -d "username=scm.admin" \
+  -d "password=&lt;your-password&gt;" \
+  -d "scope=openid profile email" | python3 -c "
+import sys, base64, json
+resp = json.load(sys.stdin)
+t = resp['access_token'].split('.')[1]
+p = t + '=' * (4 - len(t) % 4)
+decoded = json.loads(base64.urlsafe_b64decode(p))
+print(json.dumps({
+  'username': decoded.get('preferred_username'),
+  'roles':    decoded.get('realm_access', {}).get('roles', [])
+}, indent=2))
+"</code></pre>
+                    </div>
+
+                    <p class="mt-3">
+                        A successful response shows <code>scm.admin</code>
+                        as the username and all three roles in the
+                        <code>realm_access.roles</code> array.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Note about Direct Access Grants -->
+            <div class="run-note mt-4">
+                <i class="bi bi-lightbulb-fill"></i>
+                <div>
+                    <strong>Enable Direct Access Grants for smoke testing</strong>
+                    <p class="mb-0">
+                        The password grant above requires <strong>Direct Access Grants</strong>
+                        to be enabled on the <code>scm-python-chatbot</code> client.
+                        In the Admin Console: <em>Clients → scm-python-chatbot →
+                        Settings → Capability config → Direct access grants → ON</em>.
+                        This setting is for local testing only and can be turned
+                        off in a real deployment.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================================
          SPRING SERVICES
          ========================================================= -->
 
@@ -625,7 +1248,7 @@ cd scm-end-to-end-poc</code></pre>
         <div class="run-step-header">
 
             <span>
-                04
+                06
             </span>
 
             <div>
@@ -640,7 +1263,7 @@ cd scm-end-to-end-poc</code></pre>
 
                 <p>
                     Each service is an independently running Spring Boot
-                    application exposing its own REST API.
+                    application exposing its own REST API secured by Keycloak JWT.
                 </p>
 
             </div>
@@ -656,21 +1279,11 @@ cd scm-end-to-end-poc</code></pre>
 
                 <tr>
 
-                    <th>
-                        #
-                    </th>
-
-                    <th>
-                        Application
-                    </th>
-
-                    <th>
-                        Business Domain
-                    </th>
-
-                    <th>
-                        URL
-                    </th>
+                    <th>#</th>
+                    <th>Application</th>
+                    <th>Business Domain</th>
+                    <th>URL</th>
+                    <th>Security</th>
 
                 </tr>
 
@@ -681,163 +1294,65 @@ cd scm-end-to-end-poc</code></pre>
 
 
                 <tr>
-
-                    <td>
-                        01
-                    </td>
-
-                    <td>
-                        <code>cs-crm-api</code>
-                    </td>
-
-                    <td>
-                        CRM / Campaign
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8081
-                        </span>
-                    </td>
-
+                    <td>01</td>
+                    <td><code>cs-crm-api</code></td>
+                    <td>CRM / Campaign</td>
+                    <td><span class="port-badge">localhost:8081</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        02
-                    </td>
-
-                    <td>
-                        <code>cs-vendor-api</code>
-                    </td>
-
-                    <td>
-                        Vendor / RFQ
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8082
-                        </span>
-                    </td>
-
+                    <td>02</td>
+                    <td><code>cs-vendor-api</code></td>
+                    <td>Vendor / RFQ</td>
+                    <td><span class="port-badge">localhost:8082</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        03
-                    </td>
-
-                    <td>
-                        <code>cs-procurement-api</code>
-                    </td>
-
-                    <td>
-                        Procurement / Purchase Orders
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8083
-                        </span>
-                    </td>
-
+                    <td>03</td>
+                    <td><code>cs-procurement-api</code></td>
+                    <td>Procurement / Purchase Orders</td>
+                    <td><span class="port-badge">localhost:8083</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        04
-                    </td>
-
-                    <td>
-                        <code>cs-wms-inbound-api</code>
-                    </td>
-
-                    <td>
-                        Warehouse Inbound
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8084
-                        </span>
-                    </td>
-
+                    <td>04</td>
+                    <td><code>cs-wms-inbound-api</code></td>
+                    <td>Warehouse Inbound</td>
+                    <td><span class="port-badge">localhost:8084</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        05
-                    </td>
-
-                    <td>
-                        <code>cs-oms-api</code>
-                    </td>
-
-                    <td>
-                        Order Management
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8085
-                        </span>
-                    </td>
-
+                    <td>05</td>
+                    <td><code>cs-oms-api</code></td>
+                    <td>Order Management</td>
+                    <td><span class="port-badge">localhost:8085</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        06
-                    </td>
-
-                    <td>
-                        <code>cs-wms-outbound-api</code>
-                    </td>
-
-                    <td>
-                        Warehouse Outbound
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8086
-                        </span>
-                    </td>
-
+                    <td>06</td>
+                    <td><code>cs-wms-outbound-api</code></td>
+                    <td>Warehouse Outbound</td>
+                    <td><span class="port-badge">localhost:8086</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
                 <tr>
-
-                    <td>
-                        07
-                    </td>
-
-                    <td>
-                        <code>cs-tms-api</code>
-                    </td>
-
-                    <td>
-                        Transportation Management
-                    </td>
-
-                    <td>
-                        <span class="port-badge">
-                            localhost:8087
-                        </span>
-                    </td>
-
+                    <td>07</td>
+                    <td><code>cs-tms-api</code></td>
+                    <td>Transportation Management</td>
+                    <td><span class="port-badge">localhost:8087</span></td>
+                    <td><span class="badge bg-success">JWT Resource Server</span></td>
                 </tr>
 
 
@@ -883,7 +1398,7 @@ cd scm-end-to-end-poc</code></pre>
             <div class="run-step-header">
 
                 <span>
-                    05
+                    07
                 </span>
 
                 <div>
@@ -912,15 +1427,11 @@ cd scm-end-to-end-poc</code></pre>
 
                 <div class="db-flow-step">
 
-                    <span>
-                        1
-                    </span>
+                    <span>1</span>
 
                     <i class="bi bi-folder2-open"></i>
 
-                    <h3>
-                        Locate the SQL
-                    </h3>
+                    <h3>Locate the SQL</h3>
 
                     <p>
                         Inside the appropriate project, locate the
@@ -937,15 +1448,11 @@ cd scm-end-to-end-poc</code></pre>
 
                 <div class="db-flow-step">
 
-                    <span>
-                        2
-                    </span>
+                    <span>2</span>
 
                     <i class="bi bi-file-earmark-code-fill"></i>
 
-                    <h3>
-                        Open the DDL
-                    </h3>
+                    <h3>Open the DDL</h3>
 
                     <p>
                         Identify the schema / DDL
@@ -962,15 +1469,11 @@ cd scm-end-to-end-poc</code></pre>
 
                 <div class="db-flow-step">
 
-                    <span>
-                        3
-                    </span>
+                    <span>3</span>
 
                     <i class="bi bi-window-stack"></i>
 
-                    <h3>
-                        Run in Workbench
-                    </h3>
+                    <h3>Run in Workbench</h3>
 
                     <p>
                         Connect MySQL Workbench to your local
@@ -987,15 +1490,11 @@ cd scm-end-to-end-poc</code></pre>
 
                 <div class="db-flow-step">
 
-                    <span>
-                        4
-                    </span>
+                    <span>4</span>
 
                     <i class="bi bi-database-add"></i>
 
-                    <h3>
-                        Load Seed Data
-                    </h3>
+                    <h3>Load Seed Data</h3>
 
                     <p>
                         Execute the seed data SQL after the schema
@@ -1021,7 +1520,7 @@ cd scm-end-to-end-poc</code></pre>
                     <p class="mb-0">
                         Each backend service owns its schema. Do not consolidate
                         the schemas into one shared application database simply
-                        for convenience—the separation is intentional and part
+                        for convenience — the separation is intentional and part
                         of the POC architecture.
                     </p>
 
@@ -1043,19 +1542,13 @@ cd scm-end-to-end-poc</code></pre>
 
         <div class="run-step-header">
 
-            <span>
-                06
-            </span>
+            <span>08</span>
 
             <div>
 
-                <div class="card-kicker">
-                    Build
-                </div>
+                <div class="card-kicker">Build</div>
 
-                <h2>
-                    Build Each Spring Boot Application
-                </h2>
+                <h2>Build Each Spring Boot Application</h2>
 
             </div>
 
@@ -1073,15 +1566,15 @@ cd scm-end-to-end-poc</code></pre>
 
             </div>
 
-            <pre><code>mvn clean install</code></pre>
+            <pre><code>mvn clean package -DskipTests</code></pre>
 
         </div>
 
 
         <p class="run-explanation mt-3">
-            Maven compiles the application, runs its tests and creates the
-            executable Spring Boot JAR under the project's
-            <code>target</code> directory.
+            Maven compiles the application and creates the executable Spring Boot
+            JAR under the project's <code>target</code> directory.
+            Use <code>-DskipTests</code> for a faster build during local setup.
         </p>
 
     </section>
@@ -1098,19 +1591,13 @@ cd scm-end-to-end-poc</code></pre>
 
             <div class="run-step-header">
 
-                <span>
-                    07
-                </span>
+                <span>09</span>
 
                 <div>
 
-                    <div class="card-kicker">
-                        Runtime
-                    </div>
+                    <div class="card-kicker">Runtime</div>
 
-                    <h2>
-                        Start the Spring Boot Services
-                    </h2>
+                    <h2>Start the Spring Boot Services</h2>
 
                 </div>
 
@@ -1134,6 +1621,28 @@ cd scm-end-to-end-poc</code></pre>
 
 
             <div class="run-note mt-4">
+
+                <i class="bi bi-shield-lock-fill"></i>
+
+                <div>
+
+                    <strong>JWT validation starts automatically</strong>
+
+                    <p class="mb-0">
+                        Each Spring Boot service validates incoming Bearer tokens
+                        against Keycloak's JWKS endpoint
+                        (<code>http://localhost:8080/realms/scm-poc/protocol/openid-connect/certs</code>).
+                        Keycloak must be running before the APIs start.
+                        All endpoints return <code>401 Unauthorized</code> without
+                        a valid token; <code>/actuator/health</code> remains open.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="run-note mt-3">
 
                 <i class="bi bi-terminal-fill"></i>
 
@@ -1167,19 +1676,13 @@ cd scm-end-to-end-poc</code></pre>
 
         <div class="run-step-header">
 
-            <span>
-                08
-            </span>
+            <span>10</span>
 
             <div>
 
-                <div class="card-kicker">
-                    Human UI
-                </div>
+                <div class="card-kicker">Human UI</div>
 
-                <h2>
-                    Start the Spring Boot ERP Dashboard
-                </h2>
+                <h2>Start the Spring Boot ERP Dashboard</h2>
 
             </div>
 
@@ -1189,30 +1692,26 @@ cd scm-end-to-end-poc</code></pre>
         <div class="special-app-card mt-4">
 
             <div class="special-app-icon">
-
                 <i class="bi bi-window-stack"></i>
-
             </div>
 
             <div class="special-app-main">
 
-                <span class="special-label">
-                    Spring Boot UI
-                </span>
+                <span class="special-label">Spring Boot UI</span>
 
-                <h3>
-                    cs-ui-dashboard
-                </h3>
+                <h3>cs-ui-dashboard</h3>
 
                 <p>
-                    This project is the human-facing ERP simulation dashboard.
-                    It does not have its own database.
+                    The ERP simulation dashboard. Secured by Keycloak OAuth2
+                    Authorization Code flow — the browser is redirected to Keycloak
+                    login on first access. The dashboard uses a Keycloak
+                    <code>client_credentials</code> M2M token to call all seven
+                    secured REST APIs on the user's behalf.
                 </p>
 
                 <a href="https://github.com/binitdatta/scm-end-to-end-poc/tree/main/cs-ui-dashboard"
                    target="_blank"
                    rel="noopener">
-
                     <i class="bi bi-github me-1"></i>
                     View Source
                 </a>
@@ -1220,15 +1719,8 @@ cd scm-end-to-end-poc</code></pre>
             </div>
 
             <div class="special-app-port">
-
-                <small>
-                    UI
-                </small>
-
-                <strong>
-                    :8090
-                </strong>
-
+                <small>UI</small>
+                <strong>:8090</strong>
             </div>
 
         </div>
@@ -1237,16 +1729,12 @@ cd scm-end-to-end-poc</code></pre>
         <div class="command-card mt-4">
 
             <div class="command-card-header">
-
-                <span>
-                    Build
-                </span>
-
+                <span>Build &amp; Run</span>
             </div>
 
             <pre><code>cd cs-ui-dashboard
 
-mvn clean install
+mvn clean package -DskipTests
 
 java -jar target/&lt;file-name&gt;.jar</code></pre>
 
@@ -1254,13 +1742,24 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
 
 
         <div class="browser-address mt-3">
-
             <i class="bi bi-browser-chrome"></i>
+            <span>http://localhost:8090</span>
+        </div>
 
-            <span>
-                http://localhost:8090
-            </span>
-
+        <div class="run-note mt-3">
+            <i class="bi bi-info-circle-fill"></i>
+            <div>
+                <strong>Keycloak login redirect</strong>
+                <p class="mb-0">
+                    Opening <code>http://localhost:8090</code> redirects to the
+                    Keycloak login page. Use any of the three test users
+                    (<code>scm.admin</code>, <code>scm.manager</code>,
+                    <code>scm.viewer</code>) to log in. After successful
+                    authentication, Keycloak redirects back to the dashboard.
+                    A <strong>Logout</strong> button in the navbar ends the
+                    session on both the dashboard and Keycloak.
+                </p>
+            </div>
         </div>
 
     </section>
@@ -1277,19 +1776,13 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
 
             <div class="run-step-header light-header">
 
-                <span>
-                    09
-                </span>
+                <span>11</span>
 
                 <div>
 
-                    <div class="card-kicker">
-                        Agentic AI Runtime
-                    </div>
+                    <div class="card-kicker">Agentic AI Runtime</div>
 
-                    <h2>
-                        Configure the Python Agent Control Tower
-                    </h2>
+                    <h2>Configure the Python Agent Control Tower</h2>
 
                     <p>
                         The Agent Control Tower is the Python application that
@@ -1306,29 +1799,24 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
             <div class="special-app-card dark-card mt-4">
 
                 <div class="special-app-icon">
-
                     <i class="bi bi-robot"></i>
-
                 </div>
 
                 <div class="special-app-main">
 
-                    <span class="special-label">
-                        Python / LangGraph
-                    </span>
+                    <span class="special-label">Python / LangGraph</span>
 
-                    <h3>
-                        cs-agent-control-tower
-                    </h3>
+                    <h3>cs-agent-control-tower</h3>
 
                     <p>
                         Open this project in PyCharm using Python 3.12.
+                        The <code>/chat</code> page is protected by Keycloak
+                        PKCE login. The home page is publicly accessible.
                     </p>
 
                     <a href="https://github.com/binitdatta/scm-end-to-end-poc/tree/main/cs-agent-control-tower"
                        target="_blank"
                        rel="noopener">
-
                         <i class="bi bi-github me-1"></i>
                         View Source
                     </a>
@@ -1336,15 +1824,8 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
                 </div>
 
                 <div class="special-app-port">
-
-                    <small>
-                        Agent UI
-                    </small>
-
-                    <strong>
-                        :9000
-                    </strong>
-
+                    <small>Agent UI</small>
+                    <strong>:9000</strong>
                 </div>
 
             </div>
@@ -1355,20 +1836,14 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
 
             <div class="agent-step mt-5">
 
-                <div class="agent-step-number">
-                    1
-                </div>
+                <div class="agent-step-number">1</div>
 
                 <div>
 
-                    <h3>
-                        Open the Project in PyCharm
-                    </h3>
+                    <h3>Open the Project in PyCharm</h3>
 
                     <div class="command-card dark-command mt-3">
-
                         <pre><code>cd cs-agent-control-tower</code></pre>
-
                     </div>
 
                 </div>
@@ -1381,50 +1856,35 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
 
             <div class="agent-step">
 
-                <div class="agent-step-number">
-                    2
-                </div>
+                <div class="agent-step-number">2</div>
 
                 <div>
 
-                    <h3>
-                        Create a Python 3.12 Virtual Environment
-                    </h3>
+                    <h3>Create a Python 3.12 Virtual Environment</h3>
 
 
                     <ul class="nav nav-pills os-tabs mt-3"
                         id="venvTabs"
                         role="tablist">
 
-                        <li class="nav-item"
-                            role="presentation">
-
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link active"
                                     data-bs-toggle="pill"
                                     data-bs-target="#macVenv"
                                     type="button">
-
                                 <i class="bi bi-apple me-1"></i>
                                 macOS
-
                             </button>
-
                         </li>
 
-
-                        <li class="nav-item"
-                            role="presentation">
-
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link"
                                     data-bs-toggle="pill"
                                     data-bs-target="#windowsVenv"
                                     type="button">
-
                                 <i class="bi bi-windows me-1"></i>
                                 Windows
-
                             </button>
-
                         </li>
 
                     </ul>
@@ -1432,34 +1892,21 @@ java -jar target/&lt;file-name&gt;.jar</code></pre>
 
                     <div class="tab-content mt-3">
 
-
-                        <div class="tab-pane fade show active"
-                             id="macVenv">
-
+                        <div class="tab-pane fade show active" id="macVenv">
                             <div class="command-card dark-command">
-
                                 <pre><code>python3.12 -m venv .venv
 
 source .venv/bin/activate</code></pre>
-
                             </div>
-
                         </div>
 
-
-                        <div class="tab-pane fade"
-                             id="windowsVenv">
-
+                        <div class="tab-pane fade" id="windowsVenv">
                             <div class="command-card dark-command">
-
                                 <pre><code>py -3.12 -m venv .venv
 
 .venv\Scripts\activate</code></pre>
-
                             </div>
-
                         </div>
-
 
                     </div>
 
@@ -1473,22 +1920,16 @@ source .venv/bin/activate</code></pre>
 
             <div class="agent-step">
 
-                <div class="agent-step-number">
-                    3
-                </div>
+                <div class="agent-step-number">3</div>
 
                 <div>
 
-                    <h3>
-                        Install the Python Dependencies
-                    </h3>
+                    <h3>Install the Python Dependencies</h3>
 
                     <div class="command-card dark-command mt-3">
-
                         <pre><code>python -m pip install --upgrade pip
 
 pip install -r requirements.txt</code></pre>
-
                     </div>
 
                 </div>
@@ -1501,15 +1942,11 @@ pip install -r requirements.txt</code></pre>
 
             <div class="agent-step">
 
-                <div class="agent-step-number">
-                    4
-                </div>
+                <div class="agent-step-number">4</div>
 
                 <div>
 
-                    <h3>
-                        Create an Anthropic API Key
-                    </h3>
+                    <h3>Create an Anthropic API Key</h3>
 
                     <p>
                         Sign in to the Anthropic Console and create an API key
@@ -1517,22 +1954,14 @@ pip install -r requirements.txt</code></pre>
                     </p>
 
                     <div class="security-callout">
-
                         <i class="bi bi-key-fill"></i>
-
                         <div>
-
-                            <strong>
-                                Treat the API key as a secret
-                            </strong>
-
+                            <strong>Treat the API key as a secret</strong>
                             <p class="mb-0">
                                 Never commit the API key to GitHub and never
                                 place it directly inside Python source code.
                             </p>
-
                         </div>
-
                     </div>
 
                 </div>
@@ -1545,15 +1974,11 @@ pip install -r requirements.txt</code></pre>
 
             <div class="agent-step">
 
-                <div class="agent-step-number">
-                    5
-                </div>
+                <div class="agent-step-number">5</div>
 
                 <div>
 
-                    <h3>
-                        Create the Local <code>.env</code> File
-                    </h3>
+                    <h3>Create the Local <code>.env</code> File</h3>
 
                     <p>
                         Copy the example environment file included in the
@@ -1564,28 +1989,19 @@ pip install -r requirements.txt</code></pre>
                     <ul class="nav nav-pills os-tabs mt-3">
 
                         <li class="nav-item">
-
                             <button class="nav-link active"
                                     data-bs-toggle="pill"
                                     data-bs-target="#macEnv">
-
                                 macOS
-
                             </button>
-
                         </li>
 
-
                         <li class="nav-item">
-
                             <button class="nav-link"
                                     data-bs-toggle="pill"
                                     data-bs-target="#windowsEnv">
-
                                 Windows
-
                             </button>
-
                         </li>
 
                     </ul>
@@ -1593,50 +2009,48 @@ pip install -r requirements.txt</code></pre>
 
                     <div class="tab-content mt-3">
 
-                        <div class="tab-pane fade show active"
-                             id="macEnv">
-
+                        <div class="tab-pane fade show active" id="macEnv">
                             <div class="command-card dark-command">
-
                                 <pre><code>cp .env.example .env</code></pre>
-
                             </div>
-
                         </div>
 
-
-                        <div class="tab-pane fade"
-                             id="windowsEnv">
-
+                        <div class="tab-pane fade" id="windowsEnv">
                             <div class="command-card dark-command">
-
                                 <pre><code>copy .env.example .env</code></pre>
-
                             </div>
-
                         </div>
 
                     </div>
 
 
                     <p class="mt-3">
-                        Open <code>.env</code> and add the Anthropic API key
-                        together with any other environment-specific values
-                        documented in the example file.
+                        Open <code>.env</code> and populate all values.
+                        The Keycloak entries are required for PKCE login
+                        and M2M API calls:
                     </p>
 
 
                     <div class="env-example">
 
                         <div class="env-example-header">
-
-                            <span>
-                                .env
-                            </span>
-
+                            <span>.env</span>
                         </div>
 
-                        <pre><code>ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt;</code></pre>
+                        <pre><code># Anthropic
+ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt;
+
+# Keycloak — PKCE browser login (public client)
+KEYCLOAK_BASE_URL=http://localhost:8080
+KEYCLOAK_REALM=scm-poc
+KEYCLOAK_PUBLIC_CLIENT=scm-python-chatbot
+
+# Keycloak — M2M service token (calls to Spring Boot REST APIs)
+KEYCLOAK_M2M_CLIENT_ID=scm-service-client
+KEYCLOAK_M2M_SECRET=scm-service-client-secret-2025
+
+# Flask
+FLASK_SECRET_KEY=&lt;generate with: python3 -c "import secrets; print(secrets.token_hex(32))"&gt;</code></pre>
 
                     </div>
 
@@ -1650,31 +2064,36 @@ pip install -r requirements.txt</code></pre>
 
             <div class="agent-step final-agent-step">
 
-                <div class="agent-step-number">
-                    6
-                </div>
+                <div class="agent-step-number">6</div>
 
                 <div>
 
-                    <h3>
-                        Start the Agent Control Tower
-                    </h3>
+                    <h3>Start the Agent Control Tower</h3>
 
                     <div class="command-card dark-command mt-3">
-
                         <pre><code>python app.py</code></pre>
-
                     </div>
 
 
                     <div class="browser-address dark-browser mt-3">
-
                         <i class="bi bi-browser-chrome"></i>
+                        <span>http://127.0.0.1:9000</span>
+                    </div>
 
-                        <span>
-                            http://127.0.0.1:9000
-                        </span>
-
+                    <div class="run-note mt-3">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>
+                            <strong>Public home page, protected chat</strong>
+                            <p class="mb-0">
+                                The landing page at <code>/</code> is publicly
+                                accessible. Navigating to <code>/chat</code>
+                                redirects to Keycloak login using PKCE
+                                Authorization Code with S256. After login,
+                                every REST API call the chatbot makes uses
+                                a cached <code>client_credentials</code>
+                                Bearer token obtained from Keycloak automatically.
+                            </p>
+                        </div>
                     </div>
 
                 </div>
@@ -1706,6 +2125,7 @@ pip install -r requirements.txt</code></pre>
 
             <p>
                 Following this sequence makes troubleshooting much easier.
+                Keycloak must be the first service started.
             </p>
 
         </div>
@@ -1714,21 +2134,33 @@ pip install -r requirements.txt</code></pre>
         <div class="startup-sequence mt-4">
 
 
+            <div class="startup-item" style="border-color:#3b82f6;">
+
+                <span style="background:#1a3a5c;color:#3b82f6;">1</span>
+
+                <i class="bi bi-shield-lock-fill" style="color:#3b82f6;"></i>
+
+                <strong>Keycloak 26</strong>
+
+                <small>Start Identity Provider first</small>
+
+            </div>
+
+
+            <div class="startup-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+
             <div class="startup-item">
 
-                <span>
-                    1
-                </span>
+                <span>2</span>
 
                 <i class="bi bi-database-fill"></i>
 
-                <strong>
-                    MySQL 8
-                </strong>
+                <strong>MySQL 8</strong>
 
-                <small>
-                    Ensure database service is running
-                </small>
+                <small>Ensure database service is running</small>
 
             </div>
 
@@ -1740,19 +2172,13 @@ pip install -r requirements.txt</code></pre>
 
             <div class="startup-item">
 
-                <span>
-                    2
-                </span>
+                <span>3</span>
 
                 <i class="bi bi-hdd-network"></i>
 
-                <strong>
-                    Spring APIs
-                </strong>
+                <strong>Spring APIs</strong>
 
-                <small>
-                    Start ports 8081–8087
-                </small>
+                <small>Start ports 8081–8087</small>
 
             </div>
 
@@ -1764,19 +2190,13 @@ pip install -r requirements.txt</code></pre>
 
             <div class="startup-item">
 
-                <span>
-                    3
-                </span>
+                <span>4</span>
 
                 <i class="bi bi-window-stack"></i>
 
-                <strong>
-                    ERP Dashboard
-                </strong>
+                <strong>ERP Dashboard</strong>
 
-                <small>
-                    Start port 8090
-                </small>
+                <small>Start port 8090</small>
 
             </div>
 
@@ -1788,19 +2208,13 @@ pip install -r requirements.txt</code></pre>
 
             <div class="startup-item">
 
-                <span>
-                    4
-                </span>
+                <span>5</span>
 
                 <i class="bi bi-robot"></i>
 
-                <strong>
-                    Agent Control Tower
-                </strong>
+                <strong>Agent Control Tower</strong>
 
-                <small>
-                    Start port 9000
-                </small>
+                <small>Start port 9000</small>
 
             </div>
 
@@ -1835,20 +2249,13 @@ pip install -r requirements.txt</code></pre>
             <div class="verification-grid mt-4">
 
 
-                <div class="verification-card">
+                <div class="verification-card" style="border-color:#3b82f6;">
 
-                    <i class="bi bi-check-circle-fill"></i>
+                    <i class="bi bi-shield-lock-fill" style="color:#3b82f6;"></i>
 
                     <div>
-
-                        <strong>
-                            CRM
-                        </strong>
-
-                        <span>
-                            localhost:8081
-                        </span>
-
+                        <strong>Keycloak</strong>
+                        <span>localhost:8080/admin</span>
                     </div>
 
                 </div>
@@ -1859,15 +2266,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
-
-                        <strong>
-                            Vendor
-                        </strong>
-
-                        <span>
-                            localhost:8082
-                        </span>
-
+                        <strong>CRM</strong>
+                        <span>localhost:8081</span>
                     </div>
 
                 </div>
@@ -1878,15 +2278,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
-
-                        <strong>
-                            Procurement
-                        </strong>
-
-                        <span>
-                            localhost:8083
-                        </span>
-
+                        <strong>Vendor</strong>
+                        <span>localhost:8082</span>
                     </div>
 
                 </div>
@@ -1897,15 +2290,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
-
-                        <strong>
-                            WMS Inbound
-                        </strong>
-
-                        <span>
-                            localhost:8084
-                        </span>
-
+                        <strong>Procurement</strong>
+                        <span>localhost:8083</span>
                     </div>
 
                 </div>
@@ -1916,15 +2302,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
-
-                        <strong>
-                            OMS
-                        </strong>
-
-                        <span>
-                            localhost:8085
-                        </span>
-
+                        <strong>WMS Inbound</strong>
+                        <span>localhost:8084</span>
                     </div>
 
                 </div>
@@ -1935,15 +2314,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
-
-                        <strong>
-                            WMS Outbound
-                        </strong>
-
-                        <span>
-                            localhost:8086
-                        </span>
-
+                        <strong>OMS</strong>
+                        <span>localhost:8085</span>
                     </div>
 
                 </div>
@@ -1954,15 +2326,20 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-check-circle-fill"></i>
 
                     <div>
+                        <strong>WMS Outbound</strong>
+                        <span>localhost:8086</span>
+                    </div>
 
-                        <strong>
-                            TMS
-                        </strong>
+                </div>
 
-                        <span>
-                            localhost:8087
-                        </span>
 
+                <div class="verification-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <div>
+                        <strong>TMS</strong>
+                        <span>localhost:8087</span>
                     </div>
 
                 </div>
@@ -1973,15 +2350,8 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-window-stack"></i>
 
                     <div>
-
-                        <strong>
-                            ERP Dashboard
-                        </strong>
-
-                        <span>
-                            localhost:8090
-                        </span>
-
+                        <strong>ERP Dashboard</strong>
+                        <span>localhost:8090</span>
                     </div>
 
                 </div>
@@ -1992,20 +2362,58 @@ pip install -r requirements.txt</code></pre>
                     <i class="bi bi-robot"></i>
 
                     <div>
-
-                        <strong>
-                            Agent Control Tower
-                        </strong>
-
-                        <span>
-                            127.0.0.1:9000
-                        </span>
-
+                        <strong>Agent Control Tower</strong>
+                        <span>127.0.0.1:9000</span>
                     </div>
 
                 </div>
 
 
+            </div>
+
+
+            <!-- Token Quick Test -->
+            <div class="run-important mt-5">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <div>
+                    <strong>Quick security check — confirm all APIs reject unauthenticated requests</strong>
+                    <p class="mb-0 mt-2">
+                        Run this one-liner to confirm all seven REST APIs return
+                        <code>401</code> without a token and
+                        <code>200</code> with a valid Keycloak JWT:
+                    </p>
+                </div>
+            </div>
+
+            <div class="command-card mt-3">
+                <div class="command-card-header">
+                    <span><i class="bi bi-terminal me-2"></i>Terminal — Security Smoke Test</span>
+                </div>
+                <pre><code># Step 1 — confirm all APIs reject requests without a token (all should return 401)
+for port in 8081 8082 8083 8084 8085 8086 8087; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$port/api/v1/)
+  echo "Port $port: $code"
+done
+
+# Step 2 — get a token and confirm all APIs accept it (all should return 200)
+curl -s -X POST \
+  "http://localhost:8080/realms/scm-poc/protocol/openid-connect/token" \
+  -d "grant_type=password" \
+  -d "client_id=scm-python-chatbot" \
+  -d "username=scm.admin" \
+  -d "password=&lt;password&gt;" \
+  -d "scope=openid profile email" | python3 -c "
+import sys, json, subprocess
+token = json.load(sys.stdin)['access_token']
+for port, path in [(8081,'/api/v1/campaigns'),(8082,'/api/v1/rfqs'),
+                   (8083,'/api/v1/purchase-orders'),(8084,'/api/v1/asns'),
+                   (8085,'/api/v1/store-orders'),(8086,'/api/v1/shipments'),
+                   (8087,'/api/v1/delivery-loads')]:
+    r = subprocess.run(['curl','-s','-o','/dev/null','-w','%{http_code}',
+        '-H',f'Authorization: Bearer {token}',
+        f'http://localhost:{port}{path}'],capture_output=True,text=True)
+    print(f'Port {port}: {r.stdout}')
+"</code></pre>
             </div>
 
         </div>
@@ -2023,9 +2431,7 @@ pip install -r requirements.txt</code></pre>
         <div class="ready-card">
 
             <div class="ready-icon">
-
                 <i class="bi bi-rocket-takeoff-fill"></i>
-
             </div>
 
             <div>
@@ -2039,10 +2445,12 @@ pip install -r requirements.txt</code></pre>
                 </h2>
 
                 <p>
-                    With the databases initialized, seven Spring Boot APIs
-                    running, the ERP dashboard available and the Python Agent
-                    Control Tower connected to Anthropic, the entire local
-                    end-to-end supply-chain environment is ready.
+                    With Keycloak 26 securing all services, the databases
+                    initialized, seven Spring Boot APIs running behind JWT
+                    authentication, the ERP dashboard accessible after
+                    Keycloak login, and the Python Agent Control Tower
+                    connected to Anthropic — the entire local end-to-end
+                    supply-chain environment is ready.
                 </p>
 
                 <a th:href="@{/demo}"
